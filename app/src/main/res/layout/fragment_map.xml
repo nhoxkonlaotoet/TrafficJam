@@ -1,0 +1,195 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.administrator.demo.fragments.MapFragment">
+
+    <!-- TODO: Update blank fragment layout -->
+    <fragment xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:map="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        />
+    <android.support.v7.widget.CardView
+        xmlns:card_view="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/myCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        card_view:cardBackgroundColor="@android:color/transparent"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="50dp"
+        card_view:cardElevation="0dp">
+        <RelativeLayout
+
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:background="@android:color/transparent">
+        <LinearLayout
+            android:id="@+id/layoutSearchBar"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:orientation="horizontal"
+
+
+            android:background="@drawable/border">
+
+
+            <EditText
+                android:id="@+id/txtSearch"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="20"
+                android:ems="10"
+                android:inputType="textPersonName"
+                android:text=""
+                android:layout_marginLeft="15dp"
+                android:hint="Vui lòng nhập tìm kiếm..."
+                android:textSize="20sp"
+                android:background="@android:color/transparent"/>
+            <ImageButton
+                android:id="@+id/imgbtnSearch"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="80"
+                android:background="@android:color/transparent"
+                android:scaleType="fitCenter"
+                android:padding="5dp"
+
+
+                android:src="@drawable/ic_search_black_24dp" />
+            <ImageButton
+                android:id="@+id/imgbtnDirect"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="80"
+                android:background="@android:color/transparent"
+                android:scaleType="fitCenter"
+                android:padding="4dp"
+                android:layout_marginTop="3dp"
+                android:layout_marginBottom="3dp"
+                android:layout_marginRight="3dp"
+                android:src="@drawable/ic_direction" />
+
+
+        </LinearLayout>
+            <LinearLayout
+                android:id="@+id/layoutDirection"
+                android:layout_width="match_parent"
+                android:layout_height="110dp"
+                android:orientation="horizontal"
+                android:background="@drawable/border"
+                android:visibility="gone"
+                android:layout_below="@id/layoutSearchBar">
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+
+                android:orientation="vertical"
+                android:layout_weight="3"
+                android:background="@android:color/transparent">
+
+
+                <EditText
+                    android:id="@+id/txtorigin"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="20"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:text=""
+                    android:layout_marginLeft="15dp"
+                    android:hint="Chọn điểm xuất phát"
+                    android:textSize="20sp"
+                    android:background="@android:color/transparent"/>
+
+                <EditText
+                    android:id="@+id/txtdestination"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="20"
+                    android:ems="10"
+                    android:inputType="textPersonName"
+                    android:text=""
+                    android:layout_marginLeft="15dp"
+                    android:hint="Chọn điểm đến"
+                    android:textSize="20sp"
+                    android:background="@android:color/transparent"/>
+            </LinearLayout>
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal"
+                android:layout_weight="7"
+
+                android:background="@android:color/transparent">
+
+
+            <Button
+                android:id="@+id/btnStart"
+                android:layout_height="match_parent"
+                android:layout_width="match_parent"
+            android:layout_weight="4"
+                android:text="Tìm đường"
+                android:background="@android:color/transparent">
+
+            </Button>
+
+                <Button
+                    android:id="@+id/btnHideDirection"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="top|center"
+                    android:layout_weight="6"
+                    android:padding="10dp"
+                    android:background="@android:color/transparent"
+                    android:text="X" />
+            </LinearLayout>
+            </LinearLayout>
+        </RelativeLayout>
+    </android.support.v7.widget.CardView>
+
+    <ImageButton
+        android:id="@+id/imgbtnChangeMapType"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="15dp"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/border"
+        android:scaleType="fitCenter"
+        android:padding="10dp"
+        android:src="@drawable/ic_satellite_station"
+       />
+
+    <ImageButton
+        android:id="@+id/imgbtnSendTrafficJam"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="15dp"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/border"
+        android:scaleType="fitCenter"
+        android:padding="10dp"
+       />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="200dp"
+        android:layout_height="200dp"
+        android:layout_above="@+id/imgbtnChangeMapType"
+        android:layout_marginBottom="143dp"
+        android:layout_marginStart="33dp"
+        android:layout_toEndOf="@+id/imgbtnChangeMapType"
+        android:src="@drawable/border" />
+
+</RelativeLayout>

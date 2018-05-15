@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Demo</string>
+    <string name="title_activity_maps">Map</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="MODE_SATELLITE">SATELLITE MODE</string>
+    <string name="MODE_NORMAL">NORMAL MODE</string>
+    <string name="MODE_HYBRID">HYBRID MODE</string>
+    <string name="MODE_TERRAIN">TERRAIN MODE</string>
+    <string name="MODE_NONE">NONE MODE</string>
+    <string name="MODE_MY_STYLE">MY STYLE MODE</string>
+</resources>
