@@ -577,7 +577,7 @@ public class MapFragment extends Fragment implements
     void setMarkerClick()
     {
         Integer a=1;
-
+        a=a+1;
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(final Marker marker) {
