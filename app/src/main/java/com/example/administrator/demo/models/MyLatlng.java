@@ -1,6 +1,7 @@
 package com.example.administrator.demo.models;
 
 import com.google.android.gms.maps.model.LatLng;
+import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
 /**
@@ -14,16 +15,13 @@ public class MyLatlng {
     {
 
     }
-    public MyLatlng(double latitude, double longitude)
-    {
-        this.latitude=latitude;
-        this.longitude=longitude;
-    }
+
     public MyLatlng(LatLng latlng)
     {
         this.latitude=latlng.latitude;
         this.longitude = latlng.longitude;
     }
+    @Exclude
     public LatLng getLatlng()
     {
         return new LatLng(latitude,longitude);

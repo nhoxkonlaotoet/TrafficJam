@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvlevel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="200dp"
+        android:text="Vui lòng chọn mức độ kẹt xe"
+        android:textSize="25sp"
+/>
+
+    <RadioGroup
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:orientation="horizontal"
+        android:id="@+id/rdgLevel">
+
+
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Xe đông"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:id="@+id/rbtnLevel1"
+            android:layout_marginLeft="20dp"
+            android:checked="true" />
+
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Ùn tắc"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:id="@+id/rbtnLevel2"
+            android:layout_marginLeft="30dp"
+            android:checked="false" />
+        <RadioButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Kẹt xe"
+            android:gravity="center"
+            android:textSize="20sp"
+            android:id="@+id/rbtnLevel3"
+            android:layout_marginLeft="20dp"
+            android:checked="false" />
+    </RadioGroup>
+
+
+</RelativeLayout>
