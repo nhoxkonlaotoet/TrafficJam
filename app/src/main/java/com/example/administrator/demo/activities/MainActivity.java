@@ -10,16 +10,18 @@ import android.view.View;
 import com.example.administrator.demo.R;
 
 public class MainActivity extends AppCompatActivity {
-    CardView cvMap, cvAnnouce;
+    CardView cvMap, cvAnnounce, cvCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         cvMap = findViewById(R.id.cvMap);
-        cvAnnouce = findViewById(R.id.cvAnnouce);
+        cvAnnounce = findViewById(R.id.cvAnnounce);
+        cvCamera=findViewById(R.id.cvCamera);
         setCvMapClick();
-        setCvAnnouceReportClick();
+        setCvAnnouceClick();
+        setCvCameraClick();
     }
 
     public void setCvMapClick() {
@@ -32,14 +34,25 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    public void setCvAnnouceReportClick() {
-        cvAnnouce.setOnClickListener(new View.OnClickListener() {
+    public void setCvAnnouceClick() {
+        cvAnnounce.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(getBaseContext(), MapsActivity.class);
                 intent.putExtra("action", "announce");
                 startActivity(intent);
 
+            }
+        });
+    }
+    public void setCvCameraClick()
+    {
+        cvCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(getBaseContext(),MapsActivity.class);
+                intent.putExtra("action","viewcamera");
+                startActivity(intent);
             }
         });
     }

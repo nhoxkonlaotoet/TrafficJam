@@ -8,20 +8,15 @@ import com.google.firebase.database.IgnoreExtraProperties;
 @IgnoreExtraProperties
 public class User {
     public String id;
-    public String deviceId;
-    public String fullName;
-    public String gender;
+    public Boolean isActive;
     public User()
     {
 
     }
-    public User(String id,  String deviceId, String fullName, String gender)
+    public User(String id,  Boolean isActive)
     {
         this.id=id;
-        this.deviceId= deviceId;
-        this.fullName=fullName;
-
-        this.gender=gender;
+        this.isActive= isActive;
     }
 
 }

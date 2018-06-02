@@ -4,13 +4,16 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.provider.MediaStore;
 import android.support.v4.view.PagerAdapter;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 /**
  * Created by Administrator on 30/05/2018.
@@ -19,8 +22,8 @@ import android.widget.TextView;
 public class SlideAdapter extends PagerAdapter {
     Context context;
     LayoutInflater layoutInflater;
-    public Integer level=0;
     RadioGroup rg;
+    public ImageView imgvCapture;
     public  SlideAdapter(Context context)
     {
         this.context=context;
@@ -46,14 +49,16 @@ public class SlideAdapter extends PagerAdapter {
         layoutInflater =(LayoutInflater) context.getSystemService(context.LAYOUT_INFLATER_SERVICE);
         View view;
         if(position == 0) {
-            view = layoutInflater.inflate(R.layout.slide_report_0_layout, container, false);
+            view = layoutInflater.inflate(R.layout.slide_announce_0_layout, container, false);
+            container.addView(view);
+            rg=  container.findViewById(R.id.rdgLevel);
         }
         else {
-            view = layoutInflater.inflate(R.layout.slide_report_1_layout, container, false);
-
-        rg=  container.findViewById(R.id.rdgLevel);
+            view = layoutInflater.inflate(R.layout.slide_announce_1_layout, container, false);
+            container.addView(view);
+            imgvCapture=container.findViewById(R.id.imgvCapture);
         }
-        container.addView(view);
+
         return view;
     }
 

@@ -6,19 +6,11 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
-import android.location.Location;
-import android.location.LocationManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.provider.Settings;
-import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
@@ -33,29 +25,25 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.example.administrator.demo.IFragmentManager;
+import com.example.administrator.demo.models.Announce;
 import com.example.administrator.demo.models.Camera;
 import com.example.administrator.demo.models.DirectionFinder;
 import com.example.administrator.demo.models.DirectionFinderListener;
 import com.example.administrator.demo.R;
 import com.example.administrator.demo.models.DownLoadImageTask;
-import com.example.administrator.demo.models.MyLatlng;
-import com.example.administrator.demo.models.Point;
 import com.example.administrator.demo.models.Route;
 
-import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.GoogleMap.OnMyLocationClickListener;
 import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.firebase.database.DataSnapshot;
@@ -65,35 +53,29 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
 public class MapFragment extends Fragment implements
-        OnMyLocationClickListener,
-        OnMapReadyCallback,DirectionFinderListener{
+        OnMapReadyCallback,DirectionFinderListener, IFragmentManager{
 
     CountDownTimer cdt;
     private List<Marker> originMarkers = new ArrayList<>();
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
-    private List<Point> trafficjams = new ArrayList<>();
+    private List<Announce> trafficjams = new ArrayList<>();
     private ProgressDialog progressDialog;
     boolean origin=false,destination=false;
     String latlngOrigin,latlngDestination;
     private GoogleMap mMap;
-    ImageButton imgbtnChangeMapType,imgbtnDirect,imgbtnSearch,imgbtnSendTrafficJam;
+    ImageButton imgbtnChangeMapType,imgbtnDirect,imgbtnSearch;
     Button btnHideDirection,btnStart;
     EditText txtSearch,txtOrigin,txtDestination;
     ImageView imgv;
-    LatLng myLocation = new LatLng(10.851038, 106.771995);
+
 
     public MapFragment() {
         // Required empty public constructor
@@ -115,7 +97,6 @@ public class MapFragment extends Fragment implements
         super.onViewCreated(view, savedInstanceState);
         imgv = getActivity().findViewById(R.id.imageView);
 
-
         imgbtnChangeMapType = getActivity().findViewById(R.id.imgbtnChangeMapType);
         imgbtnDirect= getActivity().findViewById(R.id.imgbtnDirect);
         btnStart = getActivity().findViewById(R.id.btnStart);
@@ -124,11 +105,8 @@ public class MapFragment extends Fragment implements
         txtOrigin = getActivity().findViewById(R.id.txtorigin);
         txtDestination = getActivity().findViewById(R.id.txtdestination);
         imgbtnSearch = getActivity().findViewById(R.id.imgbtnSearch);
-        imgbtnSendTrafficJam = getActivity().findViewById(R.id.imgbtnSendTrafficJam);
 
-        String android_id = Settings.Secure.getString(getContext().getContentResolver(),
-                Settings.Secure.ANDROID_ID);
-        Toast.makeText(getActivity(), android_id, Toast.LENGTH_LONG).show();
+
         txtOrigin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
@@ -256,12 +234,7 @@ public class MapFragment extends Fragment implements
             }
         });
 
-        imgbtnSendTrafficJam.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                sendTrafficJam(myLocation);
-            }
-        });
+
 
     }//end onViewCreated
 
@@ -270,11 +243,8 @@ public class MapFragment extends Fragment implements
         mMap = googleMap;
         mMap.setMaxZoomPreference(25);
         mMap.setMinZoomPreference(5);
-        LatLng hcmute = new LatLng(10.850986, 106.772017);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(10.850986, 106.772017), 18));
-      //  mMap.addMarker(new MarkerOptions().position(hcmute).title("Marker in HCMUTE"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(hcmute));
         imgbtnChangeMapType.setTag(R.string.MODE_NORMAL);
         enableMyLocation();
         showAllTrafficJams();
@@ -296,47 +266,16 @@ public class MapFragment extends Fragment implements
                     latlngDestination = latLng.latitude + "," + latLng.longitude;
                     Toast.makeText(getActivity(), latlngDestination, Toast.LENGTH_SHORT).show();
 
-                } else {
-
-   //                     mMap.clear();
-                    mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
-                    for(Point p:trafficjams)
-                    {
-                        if(Math.sqrt( Math.pow((latLng.latitude-p.location.latitude),2)+Math.pow((latLng.longitude-p.location.longitude),2))*110952 <= p.level*15)
-                        {
-                            Toast.makeText(getActivity(), "kẹt xe: "+p.id, Toast.LENGTH_SHORT).show();
-
-                        }
-                    }
-//                    txtSearch.setText(getAddress(latLng));
                 }
-
-
+                try {
+                    cdt.cancel();
+                }
+                catch (Exception e){}
             }
         });
         setMarkerClick();
-        //final LocationManager manager = (LocationManager) getActivity().getSystemService(Context.LOCATION_SERVICE);
-        LocationListener locationListenerFunc = new LocationListener() {
-
-            @Override
-            public void onLocationChanged(Location location) {
-                Toast.makeText(getActivity(),"asdasdasdasdasd", Toast.LENGTH_LONG).show();
-            }
-        };
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("points");
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                showAllTrafficJams();
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-        showAllCameras();
+        if(getActivity().getIntent().getExtras().getString("action").equals("viewcamera"))
+            showAllCameras();
     }
         // tìm kiếm
     public LatLng getLocationFromAddress(Context context, String strAddress) {
@@ -422,12 +361,6 @@ public class MapFragment extends Fragment implements
 
     }
 
-    @Override
-    public void onMyLocationClick(@NonNull Location location) {
-        //Toast.makeText(getActivity(), "Current location:\n" + location, Toast.LENGTH_LONG).show();
-       txtSearch.setText( getAddress(new LatLng(location.getLatitude(),location.getLongitude())));
-    }
-
     private void sendRequest(String origin, String destination) {
         if (origin.isEmpty()) {
             Toast.makeText(getActivity(), "Vui lòng chọn điểm xuất phát", Toast.LENGTH_SHORT).show();
@@ -499,21 +432,10 @@ public class MapFragment extends Fragment implements
         }
     }
 
-    public void sendTrafficJam(final LatLng location)
-    {
-
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("points");
-        String id = myRef.push().getKey();
-        //myRef.child(id).setValue(new User(id, "hiep", "hùng hiệp", "123456", "male"));
-        myRef.child(id).setValue(new Point(id,new MyLatlng(myLocation),2));
-
-    }
-
     public void showAllTrafficJams()
     {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("points");
+        DatabaseReference myRef = database.getReference("announces");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -522,7 +444,7 @@ public class MapFragment extends Fragment implements
                 for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
 
                 //    Toast.makeText(getActivity(), Snapshot1.getValue().toString(), Toast.LENGTH_SHORT).show();
-                    Point p = Snapshot1.getValue(Point.class);
+                    Announce p = Snapshot1.getValue(Announce.class);
                     //u.id = Snapshot1.getKey();
                     trafficjams.add(p);
                     CircleOptions circleOption = new CircleOptions()
@@ -576,7 +498,6 @@ public class MapFragment extends Fragment implements
     }
     void setMarkerClick()
     {
-
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(final Marker marker) {
@@ -603,4 +524,18 @@ public class MapFragment extends Fragment implements
         });
     }
 
+    @Override
+    public void onStop() {
+        super.onStop();
+        try {
+            cdt.cancel();
+        }
+        catch (Exception e){}
+
+    }
+
+    @Override
+    public void onDataChanged(Object data) {
+
+    }
 }

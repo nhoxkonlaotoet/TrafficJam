@@ -4,28 +4,34 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
+import java.sql.Timestamp;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Created by Administrator on 05/05/2018.
  */
 @IgnoreExtraProperties
-public class Point {
+public class Announce {
     public String id;
     public MyLatlng location;
     public Integer level;
-    public Integer count;
-    public Point()
+    public String deviceId;
+    public Timestamp time;
+    public List image;
+    public Announce()
     {
 
     }
-    public Point(String id, MyLatlng location, Integer level)
+    public Announce(String id, MyLatlng location, Integer level, String deviceId, Timestamp time , List image )
     {
         this.id=id;
         this.location=location;
         this.level=level;
-        count =1;
+        this.deviceId=deviceId;
+        this.time=time;
+        this.image=image;
     }
 
 }

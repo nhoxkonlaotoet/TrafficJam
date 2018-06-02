@@ -11,4 +11,10 @@
     <string name="MODE_NONE">NONE MODE</string>
     <string name="MODE_MY_STYLE">MY STYLE MODE</string>
     <string name="title_activity_maps2">Map</string>
+
+    <string name="LEVEL1">Xe đông</string>
+    <string name="LEVEL2">Ùn tắc</string>
+    <string name="LEVEL3">Kẹt xe</string>
+
+
 </resources>
