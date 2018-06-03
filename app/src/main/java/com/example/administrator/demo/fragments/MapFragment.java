@@ -9,6 +9,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.app.ActivityCompat;
@@ -26,6 +27,7 @@ import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import com.example.administrator.demo.IFragmentManager;
+import com.example.administrator.demo.activities.MapsActivity;
 import com.example.administrator.demo.models.Announce;
 import com.example.administrator.demo.models.Camera;
 import com.example.administrator.demo.models.DirectionFinder;
@@ -58,29 +60,32 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public class MapFragment extends Fragment implements
-        OnMapReadyCallback,DirectionFinderListener, IFragmentManager{
+        OnMapReadyCallback, DirectionFinderListener, IFragmentManager {
 
     CountDownTimer cdt;
     private List<Marker> originMarkers = new ArrayList<>();
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
+
+    List<Camera> cameras = new ArrayList<>();
     private List<Announce> trafficjams = new ArrayList<>();
+
     private ProgressDialog progressDialog;
-    boolean origin=false,destination=false;
-    String latlngOrigin,latlngDestination;
+    boolean origin = false, destination = false;
+    String latlngOrigin, latlngDestination;
     private GoogleMap mMap;
-    ImageButton imgbtnChangeMapType,imgbtnDirect,imgbtnSearch;
-    Button btnHideDirection,btnStart;
-    EditText txtSearch,txtOrigin,txtDestination;
+    ImageButton imgbtnChangeMapType, imgbtnDirect, imgbtnSearch;
+    Button btnHideDirection, btnStart;
+    EditText txtSearch, txtOrigin, txtDestination;
     ImageView imgv;
 
 
     public MapFragment() {
         // Required empty public constructor
     }
-
 
 
     @Override
@@ -98,7 +103,7 @@ public class MapFragment extends Fragment implements
         imgv = getActivity().findViewById(R.id.imageView);
 
         imgbtnChangeMapType = getActivity().findViewById(R.id.imgbtnChangeMapType);
-        imgbtnDirect= getActivity().findViewById(R.id.imgbtnDirect);
+        imgbtnDirect = getActivity().findViewById(R.id.imgbtnDirect);
         btnStart = getActivity().findViewById(R.id.btnStart);
         btnHideDirection = getActivity().findViewById(R.id.btnHideDirection);
         txtSearch = getActivity().findViewById(R.id.txtSearch);
@@ -111,27 +116,27 @@ public class MapFragment extends Fragment implements
             @Override
             public void onFocusChange(View view, boolean b) {
 
-                   origin=b;
+                origin = b;
             }
         });
         txtDestination.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
             public void onFocusChange(View view, boolean b) {
 
-                    destination=b;
+                destination = b;
             }
         });
         imgbtnSearch.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 mMap.clear();
-                LatLng latLng = getLocationFromAddress(getContext(),txtSearch.getText().toString());
-                if(latLng==null) {
+                LatLng latLng = getLocationFromAddress(getContext(), txtSearch.getText().toString());
+                if (latLng == null) {
                     Toast.makeText(getActivity(), "Không tìm thấy", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(getActivity(),latLng.toString() ,Toast.LENGTH_SHORT).show();
-               mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
+                Toast.makeText(getActivity(), latLng.toString(), Toast.LENGTH_SHORT).show();
+                mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
             }
         });
@@ -196,8 +201,8 @@ public class MapFragment extends Fragment implements
                 LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
                 layoutDirection.setVisibility(View.VISIBLE);
                 layoutSearchBar.setVisibility(View.GONE);
-                origin=true;
-                destination=true;
+                origin = true;
+                destination = true;
             }
         });
         btnHideDirection.setOnClickListener(new View.OnClickListener() {
@@ -214,26 +219,25 @@ public class MapFragment extends Fragment implements
             @Override
             public void onClick(View view) {
 
-                String origin,destination;
-                if(latlngOrigin == null)
-                    origin  = txtOrigin.getText().toString();
+                String origin, destination;
+                if (latlngOrigin == null)
+                    origin = txtOrigin.getText().toString();
                 else
-                    origin=latlngOrigin;
-                if(latlngDestination ==null)
-                    destination=txtDestination.getText().toString();
+                    origin = latlngOrigin;
+                if (latlngDestination == null)
+                    destination = txtDestination.getText().toString();
                 else
                     destination = latlngDestination;
 
-                sendRequest(origin,destination);
+                sendRequest(origin, destination);
                 mMap.clear();
                 btnHideDirection.callOnClick();
                 txtOrigin.setText("");
                 txtDestination.setText("");
-                latlngOrigin=null;
-                latlngDestination=null;
+                latlngOrigin = null;
+                latlngDestination = null;
             }
         });
-
 
 
     }//end onViewCreated
@@ -248,6 +252,8 @@ public class MapFragment extends Fragment implements
         imgbtnChangeMapType.setTag(R.string.MODE_NORMAL);
         enableMyLocation();
         showAllTrafficJams();
+        setTrafficJamsListener();
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -269,15 +275,16 @@ public class MapFragment extends Fragment implements
                 }
                 try {
                     cdt.cancel();
+                } catch (Exception e) {
                 }
-                catch (Exception e){}
             }
         });
         setMarkerClick();
-        if(getActivity().getIntent().getExtras().getString("action").equals("viewcamera"))
+        if (getActivity().getIntent().getExtras().getString("action").equals("viewcamera"))
             showAllCameras();
     }
-        // tìm kiếm
+
+    // tìm kiếm
     public LatLng getLocationFromAddress(Context context, String strAddress) {
 
         Geocoder coder = new Geocoder(context);
@@ -291,10 +298,9 @@ public class MapFragment extends Fragment implements
                 return null;
             }
 
-            for(Address addr : address)
-            {
+            for (Address addr : address) {
                 Address location = addr;
-                p1 = new LatLng(location.getLatitude(), location.getLongitude() );
+                p1 = new LatLng(location.getLatitude(), location.getLongitude());
                 return p1;
             }
         } catch (IOException ex) {
@@ -305,11 +311,10 @@ public class MapFragment extends Fragment implements
         return null;
     }
 
-    public String getAddress(LatLng latLng)
-    {
+    public String getAddress(LatLng latLng) {
         Geocoder geocoder;
 
-        List<Address> addresses ;
+        List<Address> addresses;
         geocoder = new Geocoder(getActivity(), Locale.getDefault());
 
         try {
@@ -321,7 +326,7 @@ public class MapFragment extends Fragment implements
             String postalCode = addresses.get(0).getPostalCode();
             String knownName = addresses.get(0).getFeatureName(); // số nhà
             //    Toast.makeText(getActivity(), address+", "+city+", "+state+", "+country+", "+postalCode+", "+knownName, Toast.LENGTH_SHORT).show();
-            String result= address+", "+city+", "+state+", "+country;
+            String result = address + ", " + city + ", " + state + ", " + country;
             return result;
 
         } catch (IOException e) {
@@ -330,6 +335,7 @@ public class MapFragment extends Fragment implements
         }
         return null;
     }
+
     // bật vị trí của tôi
     public void enableMyLocation() {
 
@@ -347,17 +353,15 @@ public class MapFragment extends Fragment implements
                 ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.INTERNET}, 1);
             }
 
-                // Access to the location has been granted to the app.
-                Toast.makeText(getActivity(), "enable location", Toast.LENGTH_SHORT).show();
-                mMap.setMyLocationEnabled(true);
+            // Access to the location has been granted to the app.
+            Toast.makeText(getActivity(), "enable location", Toast.LENGTH_SHORT).show();
+            mMap.setMyLocationEnabled(true);
 
+        } else {
+            // Access to the location has been granted to the app.
+            Toast.makeText(getActivity(), "enable location", Toast.LENGTH_SHORT).show();
+            mMap.setMyLocationEnabled(true);
         }
-            else
-           {
-                // Access to the location has been granted to the app.
-                Toast.makeText(getActivity(), "enable location", Toast.LENGTH_SHORT).show();
-                mMap.setMyLocationEnabled(true);
-            }
 
     }
 
@@ -396,7 +400,7 @@ public class MapFragment extends Fragment implements
         }
 
         if (polylinePaths != null) {
-            for (Polyline polyline:polylinePaths ) {
+            for (Polyline polyline : polylinePaths) {
                 polyline.remove();
             }
         }
@@ -432,86 +436,111 @@ public class MapFragment extends Fragment implements
         }
     }
 
-    public void showAllTrafficJams()
-    {
+    public void setTrafficJamsListener() {
+        final FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("announces");
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                trafficjams.clear();
+                for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
+                    Announce p = Snapshot1.getValue(Announce.class);
+                    trafficjams.add(p);
+                }
+                if(isInTrafficJam(((MapsActivity) getActivity()).myLocation))
+                    Toast.makeText(getActivity(), "Bạn đang bị kẹt xe", Toast.LENGTH_SHORT).show();
+                mapRefresh();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void showAllTrafficJams() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("announces");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<CircleOptions> circleOptions= new ArrayList<>();
                 trafficjams.clear();
                 for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
-
-                //    Toast.makeText(getActivity(), Snapshot1.getValue().toString(), Toast.LENGTH_SHORT).show();
                     Announce p = Snapshot1.getValue(Announce.class);
-                    //u.id = Snapshot1.getKey();
                     trafficjams.add(p);
-                    CircleOptions circleOption = new CircleOptions()
-                            .center(p.location.getLatlng())
-                            .radius(p.level*15)
-                            .strokeColor(Color.WHITE)
-                            .strokeWidth(1)
-                            .fillColor(Color.argb(60,255, 0, 0));
-                    circleOptions.add(circleOption);
-
                 }
-                for( CircleOptions circleOption : circleOptions)
-                {
-                    mMap.addCircle(circleOption);
-                }
+                mapRefresh();
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.e("errrrorrrrrrrrrrrrrrr",databaseError.toString() );
+                Log.e("errrrorrrrrrrrrrrrrrr", databaseError.toString());
             }
 
 
         });
     }
-    public void showAllCameras()
-    {
+
+    void mapRefresh() {
+        mMap.clear();
+        for (Camera c : cameras) {
+            mMap.addMarker(new MarkerOptions()
+                    .title(c.name)
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_camera))
+                    .position(c.location.getLatlng()))
+                    .setTag(c.id);
+        }
+        for (Announce a : trafficjams) {
+            CircleOptions circleOption = new CircleOptions()
+                    .center(a.location.getLatlng())
+                    .radius(a.level * 15)
+                    .strokeColor(Color.WHITE)
+                    .strokeWidth(1)
+                    .fillColor(Color.argb(60, 255, 0, 0));
+            mMap.addCircle(circleOption);
+        }
+    }
+
+    public void showAllCameras() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("cameras");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                List<Camera> cameras= new ArrayList<>();
-                trafficjams.clear();
+                cameras.clear();
                 for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
                     Camera c = Snapshot1.getValue(Camera.class);
-                    mMap.addMarker(new MarkerOptions()
-                                .title(c.name)
-                                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_camera) )
-                                .position(c.location.getLatlng()))
-                            .setTag(c.id);
+                    cameras.add(c);
                 }
-
+                mapRefresh();
             }
+
             @Override
             public void onCancelled(DatabaseError databaseError) {
-                Log.e("errrrorrrrrrrrrrrrrrr",databaseError.toString() );
+                Log.e("errrrorrrrrrrrrrrrrrr", databaseError.toString());
             }
 
 
         });
     }
-    void setMarkerClick()
-    {
+
+    void setMarkerClick() {
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(final Marker marker) {
                 final Marker m = marker;
-                if(cdt!=null)
+                if (cdt != null)
                     cdt.cancel();
-                 cdt= new CountDownTimer(900000000, 15000) {
+                cdt = new CountDownTimer(900000000, 15000) {
                     public void onTick(long millisUntilFinished) {
                         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-                        final String imgURL = "http://giaothong.hochiminhcity.gov.vn/render/ImageHandler.ashx?id="+m.getTag()+"&t="+timestamp.getTime()+".png";
+                        final String imgURL = "http://giaothong.hochiminhcity.gov.vn/render/ImageHandler.ashx?id=" + m.getTag() + "&t=" + timestamp.getTime() + ".png";
                         new DownLoadImageTask(imgv).execute(imgURL);
 
-                        Toast.makeText(getContext(), timestamp.getTime()+"", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(getContext(), timestamp.getTime() + "", Toast.LENGTH_SHORT).show();
                     }
+
                     public void onFinish() {
                         cdt.start();
                     }
@@ -529,9 +558,20 @@ public class MapFragment extends Fragment implements
         super.onStop();
         try {
             cdt.cancel();
+        } catch (Exception e) {
         }
-        catch (Exception e){}
 
+    }
+
+    public boolean isInTrafficJam(Location myLocation) {
+        for (Announce a : trafficjams) {
+            Double x = Math.sqrt(Math.pow(myLocation.getLatitude() - a.location.latitude, 2)
+                    + Math.pow(myLocation.getLongitude() - a.location.longitude, 2));
+            if (x * 30.82 * 3600 <= a.level * 15) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

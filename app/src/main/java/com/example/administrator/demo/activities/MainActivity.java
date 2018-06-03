@@ -6,8 +6,12 @@ import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.text.method.CharacterPickerDialog;
 import android.view.View;
+import android.widget.Toast;
 
 import com.example.administrator.demo.R;
+
+import java.sql.Timestamp;
+import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     CardView cvMap, cvAnnounce, cvCamera;
@@ -22,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
         setCvMapClick();
         setCvAnnouceClick();
         setCvCameraClick();
+
     }
 
     public void setCvMapClick() {

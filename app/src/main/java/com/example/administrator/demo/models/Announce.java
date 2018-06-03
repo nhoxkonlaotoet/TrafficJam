@@ -18,20 +18,25 @@ public class Announce {
     public MyLatlng location;
     public Integer level;
     public String deviceId;
-    public Timestamp time;
-    public List image;
+    public long time;
+    public String imageURL;
     public Announce()
     {
 
     }
-    public Announce(String id, MyLatlng location, Integer level, String deviceId, Timestamp time , List image )
+    public Announce(String id, MyLatlng location, Integer level,
+                    String deviceId, long time , String imageURL )
     {
         this.id=id;
         this.location=location;
         this.level=level;
         this.deviceId=deviceId;
         this.time=time;
-        this.image=image;
+        this.imageURL=imageURL;
     }
-
+    @Exclude
+    public String toString()
+    {
+        return "id: "+id+", location: "+location+", level: "+level+", deviceid: "+deviceId+", time: "+time+", url: "+imageURL;
+    }
 }
