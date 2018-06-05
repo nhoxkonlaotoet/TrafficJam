@@ -35,7 +35,8 @@ public class MapsActivity extends AppCompatActivity
     @Override
     public void onAttachFragment(android.support.v4.app.Fragment fragment) {
         super.onAttachFragment(fragment);
-        interfaceTrans = (IFragmentManager)fragment;
+        interfaceTrans = (IFragmentManager) fragment;
+
     }
 
     @Override
@@ -51,10 +52,8 @@ public class MapsActivity extends AppCompatActivity
                 .addApi(LocationServices.API)
                 .build();
         googleApiClient.connect();
-//        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
-//        mapFragment.getMapAsync(this);
-        if(action.equals("viewmap")) {
 
+        if(action.equals("viewmap")) {
 
             FragmentManager manager = getSupportFragmentManager();
             MapFragment fragment = new MapFragment();
@@ -63,7 +62,6 @@ public class MapsActivity extends AppCompatActivity
         else
             if(action.equals("announce"))
         {
-
             FragmentManager manager = getSupportFragmentManager();
             AnnounceTrafficJamFragment fragment = new AnnounceTrafficJamFragment();
             manager.beginTransaction().replace(R.id.container_main, fragment, fragment.getTag()).commit();
@@ -71,8 +69,6 @@ public class MapsActivity extends AppCompatActivity
         else
             if(action.equals("viewcamera"))
             {
-
-
                 FragmentManager manager = getSupportFragmentManager();
                 MapFragment fragment = new MapFragment();
                 manager.beginTransaction().replace(R.id.container_main, fragment, fragment.getTag()).commit();

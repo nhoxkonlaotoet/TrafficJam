@@ -5,16 +5,26 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.CardView;
 import android.text.method.CharacterPickerDialog;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
 import com.example.administrator.demo.R;
+import com.google.android.gms.common.GooglePlayServicesNotAvailableException;
+import com.google.android.gms.common.GooglePlayServicesRepairableException;
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
 
 import java.sql.Timestamp;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
     CardView cvMap, cvAnnounce, cvCamera;
+    int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -26,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
         setCvMapClick();
         setCvAnnouceClick();
         setCvCameraClick();
+
 
     }
 

@@ -20,6 +20,7 @@ public class MyLatlng {
     {
         this.latitude=latlng.latitude;
         this.longitude = latlng.longitude;
+
     }
     @Exclude
     public LatLng getLatlng()

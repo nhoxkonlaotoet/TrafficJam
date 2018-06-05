@@ -2,19 +2,12 @@
     <string name="app_name">Demo</string>
     <string name="title_activity_maps">Map</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="MODE_SATELLITE">SATELLITE MODE</string>
-    <string name="MODE_NORMAL">NORMAL MODE</string>
-    <string name="MODE_HYBRID">HYBRID MODE</string>
-    <string name="MODE_TERRAIN">TERRAIN MODE</string>
-    <string name="MODE_NONE">NONE MODE</string>
-    <string name="MODE_MY_STYLE">MY STYLE MODE</string>
-    <string name="title_activity_maps2">Map</string>
-
     <string name="LEVEL1">Xe đông</string>
     <string name="LEVEL2">Ùn tắc</string>
     <string name="LEVEL3">Kẹt xe</string>
 
+    <string name="VIEWCAMERA">viewcamera</string>
+    <string name="VIEWMAP">viewmap</string>
+    <string name="ANNOUNCE">annouce</string>
 
 </resources>

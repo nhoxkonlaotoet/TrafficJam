@@ -4,9 +4,11 @@ package com.example.administrator.demo.fragments;
 import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.Point;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -14,6 +16,8 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -36,6 +40,12 @@ import com.example.administrator.demo.R;
 import com.example.administrator.demo.models.DownLoadImageTask;
 import com.example.administrator.demo.models.Route;
 
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocomplete;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
+import com.google.android.gms.location.places.ui.SupportPlaceAutocompleteFragment;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -60,15 +70,17 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
+
+import static android.content.ContentValues.TAG;
 
 public class MapFragment extends Fragment implements
         OnMapReadyCallback, DirectionFinderListener, IFragmentManager {
 
+
     CountDownTimer cdt;
-    private List<Marker> originMarkers = new ArrayList<>();
-    private List<Marker> destinationMarkers = new ArrayList<>();
-    private List<Polyline> polylinePaths = new ArrayList<>();
+    private MarkerOptions originMarker;
+    private MarkerOptions destinationMarker;
+    private List<PolylineOptions> polylinePaths = new ArrayList<>();
 
     List<Camera> cameras = new ArrayList<>();
     private List<Announce> trafficjams = new ArrayList<>();
@@ -77,11 +89,11 @@ public class MapFragment extends Fragment implements
     boolean origin = false, destination = false;
     String latlngOrigin, latlngDestination;
     private GoogleMap mMap;
-    ImageButton imgbtnChangeMapType, imgbtnDirect, imgbtnSearch;
+    ImageButton imgbtnDirection, imgbtnSearch;
     Button btnHideDirection, btnStart;
     EditText txtSearch, txtOrigin, txtDestination;
     ImageView imgv;
-
+    Location myLocation;
 
     public MapFragment() {
         // Required empty public constructor
@@ -98,19 +110,41 @@ public class MapFragment extends Fragment implements
         return view;
     }
 
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+    void mapping() {
         imgv = getActivity().findViewById(R.id.imageView);
-
-        imgbtnChangeMapType = getActivity().findViewById(R.id.imgbtnChangeMapType);
-        imgbtnDirect = getActivity().findViewById(R.id.imgbtnDirect);
+        imgbtnDirection = getActivity().findViewById(R.id.imgbtnDirect);
         btnStart = getActivity().findViewById(R.id.btnStart);
         btnHideDirection = getActivity().findViewById(R.id.btnHideDirection);
         txtSearch = getActivity().findViewById(R.id.txtSearch);
         txtOrigin = getActivity().findViewById(R.id.txtorigin);
         txtDestination = getActivity().findViewById(R.id.txtdestination);
         imgbtnSearch = getActivity().findViewById(R.id.imgbtnSearch);
+    }
 
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+
+        mapping();
+
+
+        PlaceAutocompleteFragment autocompleteFragment =
+                (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
+        autocompleteFragment.setHint("Điểm xuất phát");
+        getActivity().findViewById(R.id.place_autocomplete_search_button).setVisibility(View.INVISIBLE);
+        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName());
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
 
         txtOrigin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
             @Override
@@ -126,94 +160,28 @@ public class MapFragment extends Fragment implements
                 destination = b;
             }
         });
-        imgbtnSearch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mMap.clear();
-                LatLng latLng = getLocationFromAddress(getContext(), txtSearch.getText().toString());
-                if (latLng == null) {
-                    Toast.makeText(getActivity(), "Không tìm thấy", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                Toast.makeText(getActivity(), latLng.toString(), Toast.LENGTH_SHORT).show();
-                mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
-                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-            }
-        });
-        //
-        imgbtnChangeMapType.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (imgbtnChangeMapType.getTag().equals(R.string.MODE_NORMAL)) {
-                    Toast.makeText(getActivity(), "my style", Toast.LENGTH_SHORT).show();
-                    imgbtnChangeMapType.setTag(R.string.MODE_MY_STYLE);
-                    imgbtnChangeMapType.setImageResource(R.drawable.ic_satellite_station);
-                    mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                    try {
-                        boolean success = mMap.setMapStyle(
-                                MapStyleOptions.loadRawResourceStyle(
-                                        getActivity(), R.raw.mystyle_json));
+//        imgbtnSearch.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                LatLng latLng = getLocationFromAddress(getContext(), txtSearch.getText().toString());
+//                if (latLng == null) {
+//                    Toast.makeText(getActivity(), "Không tìm thấy", Toast.LENGTH_SHORT).show();
+//                    return;
+//                }
+//                Toast.makeText(getActivity(), latLng.toString(), Toast.LENGTH_SHORT).show();
+//                mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
+//                mMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+//            }
+//        });
 
-                        if (!success) {
-                            Log.e("", "Style parsing failed.");
-                        }
-                    } catch (Resources.NotFoundException e) {
-                        Log.e("", "Can't find style. Error: ", e);
-                    }
-                } else if (imgbtnChangeMapType.getTag().equals(R.string.MODE_MY_STYLE)) {
-                    Toast.makeText(getActivity(), "satellite", Toast.LENGTH_SHORT).show();
-                    imgbtnChangeMapType.setTag(R.string.MODE_SATELLITE);
-                    imgbtnChangeMapType.setImageResource(R.drawable.ic_satellite_station);
-                    mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 
-                } else if (imgbtnChangeMapType.getTag().equals(R.string.MODE_SATELLITE)) {
-                    Toast.makeText(getActivity(), "hybrid", Toast.LENGTH_SHORT).show();
-                    imgbtnChangeMapType.setTag(R.string.MODE_HYBRID);
-                    imgbtnChangeMapType.setImageResource(R.drawable.ic_map);
-                    mMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        setButtonStartClick();
+        setButtonDirectionClick();
+        setButtonHideDirectionClick();
 
-                } else if (imgbtnChangeMapType.getTag().equals(R.string.MODE_HYBRID)) {
-                    Toast.makeText(getActivity(), "terrain", Toast.LENGTH_SHORT).show();
-                    imgbtnChangeMapType.setTag(R.string.MODE_TERRAIN);
-                    imgbtnChangeMapType.setImageResource(R.drawable.ic_map);
-                    mMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+    }//end onViewCreated
 
-                } else if (imgbtnChangeMapType.getTag().equals(R.string.MODE_TERRAIN)) {
-                    Toast.makeText(getActivity(), "none", Toast.LENGTH_SHORT).show();
-                    imgbtnChangeMapType.setTag(R.string.MODE_NONE);
-                    imgbtnChangeMapType.setImageResource(R.drawable.ic_map);
-                    mMap.setMapType(GoogleMap.MAP_TYPE_NONE);
-
-                } else if (imgbtnChangeMapType.getTag().equals(R.string.MODE_NONE)) {
-                    Toast.makeText(getActivity(), "normal", Toast.LENGTH_SHORT).show();
-                    imgbtnChangeMapType.setTag(R.string.MODE_NORMAL);
-                    imgbtnChangeMapType.setImageResource(R.drawable.ic_map);
-                    mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-                    mMap.setMapStyle(null);
-
-                }
-            }
-        });
-        imgbtnDirect.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                LinearLayout layoutDirection = getActivity().findViewById(R.id.layoutDirection);
-                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
-                layoutDirection.setVisibility(View.VISIBLE);
-                layoutSearchBar.setVisibility(View.GONE);
-                origin = true;
-                destination = true;
-            }
-        });
-        btnHideDirection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                LinearLayout layoutDirection = getActivity().findViewById(R.id.layoutDirection);
-                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
-                layoutDirection.setVisibility(View.GONE);
-                layoutSearchBar.setVisibility(View.VISIBLE);
-            }
-        });
+    void setButtonStartClick() {
         // tìm đường
         btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -229,8 +197,7 @@ public class MapFragment extends Fragment implements
                 else
                     destination = latlngDestination;
 
-                sendRequest(origin, destination);
-                mMap.clear();
+                sendDirectionRequest(origin, destination);
                 btnHideDirection.callOnClick();
                 txtOrigin.setText("");
                 txtDestination.setText("");
@@ -238,9 +205,34 @@ public class MapFragment extends Fragment implements
                 latlngDestination = null;
             }
         });
+    }
 
+    void setButtonDirectionClick() {
+        imgbtnDirection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LinearLayout layoutDirection = getActivity().findViewById(R.id.layoutDirection);
+                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
+                layoutDirection.setVisibility(View.VISIBLE);
+                layoutSearchBar.setVisibility(View.GONE);
+                origin = true;
+                destination = true;
 
-    }//end onViewCreated
+            }
+        });
+    }
+
+    void setButtonHideDirectionClick() {
+        btnHideDirection.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                LinearLayout layoutDirection = getActivity().findViewById(R.id.layoutDirection);
+                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
+                layoutDirection.setVisibility(View.GONE);
+                layoutSearchBar.setVisibility(View.VISIBLE);
+            }
+        });
+    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -249,39 +241,36 @@ public class MapFragment extends Fragment implements
         mMap.setMinZoomPreference(5);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(10.850986, 106.772017), 18));
-        imgbtnChangeMapType.setTag(R.string.MODE_NORMAL);
+
         enableMyLocation();
-        showAllTrafficJams();
+
         setTrafficJamsListener();
+        setPolylineClick();
+        setMapClick();
+        setMarkerClick();
+        if (getActivity().getIntent().getExtras().getString("action").equals(R.string.VIEWCAMERA))
+            showAllCameras();
 
-        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+
+    }
+
+    void setPolylineClick() {
+        mMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
             @Override
-            public void onMapClick(LatLng latLng) {
-
-                if (origin) {
-                    mMap.clear();
-                    mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
-                    txtOrigin.setText(getAddress(latLng));
-                    latlngOrigin = latLng.latitude + "," + latLng.longitude;
-                    Toast.makeText(getActivity(), latlngOrigin, Toast.LENGTH_SHORT).show();
-                    origin = false;
-                } else if (destination) {
-                    mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
-                    txtDestination.setText(getAddress(latLng));
-                    destination = false;
-                    latlngDestination = latLng.latitude + "," + latLng.longitude;
-                    Toast.makeText(getActivity(), latlngDestination, Toast.LENGTH_SHORT).show();
-
+            public void onPolylineClick(Polyline polyline) {
+                int normal = getResources().getColor(R.color.normal_way);
+                for (PolylineOptions polylineOptions : polylinePaths) {
+                    polylineOptions.color(normal);
+                    Log.e("path", polylineOptions+"" );
                 }
-                try {
-                    cdt.cancel();
-                } catch (Exception e) {
-                }
+                Log.e("onPolylineClick: ", polyline.toString());
+                mapRefresh();
+                polyline.setColor(getResources().getColor(R.color.selected_way));
+
+                Log.e( "click:",polyline.getId());
+
             }
         });
-        setMarkerClick();
-        if (getActivity().getIntent().getExtras().getString("action").equals("viewcamera"))
-            showAllCameras();
     }
 
     // tìm kiếm
@@ -307,7 +296,6 @@ public class MapFragment extends Fragment implements
 
             ex.printStackTrace();
         }
-
         return null;
     }
 
@@ -365,7 +353,7 @@ public class MapFragment extends Fragment implements
 
     }
 
-    private void sendRequest(String origin, String destination) {
+    private void sendDirectionRequest(String origin, String destination) {
         if (origin.isEmpty()) {
             Toast.makeText(getActivity(), "Vui lòng chọn điểm xuất phát", Toast.LENGTH_SHORT).show();
             return;
@@ -374,7 +362,6 @@ public class MapFragment extends Fragment implements
             Toast.makeText(getActivity(), "Vui lòng chọn điểm đến", Toast.LENGTH_SHORT).show();
             return;
         }
-
         try {
             new DirectionFinder(this, origin, destination).execute();
         } catch (UnsupportedEncodingException e) {
@@ -387,68 +374,78 @@ public class MapFragment extends Fragment implements
         progressDialog = ProgressDialog.show(getActivity(), "",
                 "Chờ xíu", true);
 
-        if (originMarkers != null) {
-            for (Marker marker : originMarkers) {
-                marker.remove();
-            }
+        if (originMarker != null) {
+            originMarker = null;
         }
-
-        if (destinationMarkers != null) {
-            for (Marker marker : destinationMarkers) {
-                marker.remove();
-            }
+        if (destinationMarker != null) {
+            destinationMarker = null;
         }
-
         if (polylinePaths != null) {
-            for (Polyline polyline : polylinePaths) {
-                polyline.remove();
-            }
+            polylinePaths.clear();
         }
+        mapRefresh();
     }
 
     @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
         progressDialog.dismiss();
-        polylinePaths = new ArrayList<>();
-        originMarkers = new ArrayList<>();
-        destinationMarkers = new ArrayList<>();
-
+        polylinePaths.clear();
+        originMarker = null;
+        destinationMarker = null;
+        boolean ignore;
+        mapRefresh();
         for (Route route : routes) {
+            ignore = false;
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
 
-            originMarkers.add(mMap.addMarker(new MarkerOptions()
+            originMarker = new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_origin))
                     .title(route.startAddress)
-                    .position(route.startLocation)));
-            destinationMarkers.add(mMap.addMarker(new MarkerOptions()
+                    .position(route.startLocation);
+            destinationMarker = new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_destination))
                     .title(route.endAddress)
-                    .position(route.endLocation)));
+                    .position(route.endLocation);
 
             PolylineOptions polylineOptions = new PolylineOptions().
                     geodesic(true).
-                    color(Color.parseColor("#74ccfc")).
-                    width(15);
-            for (int i = 0; i < route.points.size(); i++)
-                polylineOptions.add(route.points.get(i));
+                    color(getResources().getColor(R.color.normal_way)).
+                    width(10);
 
-            polylinePaths.add(mMap.addPolyline(polylineOptions));
+            for (int i = 0; i < route.points.size(); i++) {
+                if (!ignore)
+                    if (isInTrafficJam(route.points.get(i)) ||
+                            (i > 0 && isInTrafficJam(new LatLng((route.points.get(i - 1).latitude + route.points.get(i).latitude) / 2,
+                                    (route.points.get(i - 1).longitude + route.points.get(i).longitude) / 2)))) {
+                        polylineOptions.color(getResources().getColor(R.color.red_way));
+                        Log.e("Direction ", route + "");
+                        ignore = true;
+                    }
+                polylineOptions.add(route.points.get(i));
+            }
+
+            polylinePaths.add(polylineOptions);
+            mapRefresh();
         }
+
     }
 
     public void setTrafficJamsListener() {
-        final FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("announces");
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference myRef = database.getReference("announces");
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
+//                if (trafficjams.size()==0)
+//                    return;
                 trafficjams.clear();
                 for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
                     Announce p = Snapshot1.getValue(Announce.class);
                     trafficjams.add(p);
                 }
-                if(isInTrafficJam(((MapsActivity) getActivity()).myLocation))
-                    Toast.makeText(getActivity(), "Bạn đang bị kẹt xe", Toast.LENGTH_SHORT).show();
+                if (myLocation != null)
+                    if (isInTrafficJam(new LatLng(myLocation.getLatitude(), myLocation.getLongitude())))
+                        Toast.makeText(getActivity(), "Bạn đang bị kẹt xe", Toast.LENGTH_SHORT).show();
                 mapRefresh();
             }
 
@@ -500,6 +497,17 @@ public class MapFragment extends Fragment implements
                     .fillColor(Color.argb(60, 255, 0, 0));
             mMap.addCircle(circleOption);
         }
+
+        for (PolylineOptions polylineOptions : polylinePaths) {
+            Polyline line = mMap.addPolyline(polylineOptions);
+            line.setClickable(true);
+        }
+        if (originMarker != null) {
+            mMap.addMarker(originMarker);
+            if (destinationMarker != null)
+                mMap.addMarker(destinationMarker);
+        }
+
     }
 
     public void showAllCameras() {
@@ -523,6 +531,58 @@ public class MapFragment extends Fragment implements
 
 
         });
+    }
+
+    void setMapClick() {
+        mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+            @Override
+            public void onMapClick(LatLng latLng) {
+                if (origin) {
+                    mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
+                    txtOrigin.setText(getAddress(latLng));
+                    latlngOrigin = latLng.latitude + "," + latLng.longitude;
+                    Toast.makeText(getActivity(), latlngOrigin, Toast.LENGTH_SHORT).show();
+                    origin = false;
+                } else if (destination) {
+                    mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
+                    txtDestination.setText(getAddress(latLng));
+                    destination = false;
+                    latlngDestination = latLng.latitude + "," + latLng.longitude;
+                    Toast.makeText(getActivity(), latlngDestination, Toast.LENGTH_SHORT).show();
+
+                }
+//                Log.e("so duong ", polylinePaths.size()+"");
+//                for(Polyline polyline : polylinePaths)
+//                {
+//                    Log.e("so diem",polyline.getPoints().size()+"" );
+//                    for(int i=1;i<polyline.getPoints().size();i++)
+//                    {
+//                        if(isLine(polyline.getPoints().get(i-1),polyline.getPoints().get(i),latLng,15))
+//                            Log.e( "aaaaaaaaaaa", polyline.getPoints().get(i).toString());
+//                    }
+//                }
+//                try {//stop load camera image
+//                    cdt.cancel();
+//                } catch (Exception e) {
+//                }
+            }
+        });
+    }
+
+    boolean isLine(LatLng p1, LatLng p2, LatLng e, float width) {
+        double a = ((double) (p1.latitude - p2.latitude)) / ((double) (p1.longitude - p2.longitude));
+        double b = p1.latitude - a * p1.longitude;
+        Log.e("onMapClick", a + " " + b);
+        if (p1.longitude < p2.longitude) {
+            if (e.longitude < p1.longitude || e.longitude > p2.longitude)
+                return false;
+        } else if (e.longitude < p2.longitude || e.longitude > p1.longitude)
+            return false;
+        if (((double) (a * e.longitude + b - e.latitude) * 3600 * 30.82) < width && ((double) (a * e.longitude + b - e.latitude) * 3600 * 30.82) > -width) {
+            Log.e("isLine: ", "a=" + a + "x=" + e.longitude + "b=" + b + "y=" + e.latitude + " ====" + ((a * e.longitude + b - e.latitude) * 3600 * 30.82) + "");
+            return true;
+        }
+        return false;
     }
 
     void setMarkerClick() {
@@ -563,19 +623,23 @@ public class MapFragment extends Fragment implements
 
     }
 
-    public boolean isInTrafficJam(Location myLocation) {
-        for (Announce a : trafficjams) {
-            Double x = Math.sqrt(Math.pow(myLocation.getLatitude() - a.location.latitude, 2)
-                    + Math.pow(myLocation.getLongitude() - a.location.longitude, 2));
-            if (x * 30.82 * 3600 <= a.level * 15) {
-                return true;
+    public boolean isInTrafficJam(LatLng latlng) {
+        if (trafficjams.size() != 0)
+            for (Announce a : trafficjams) {
+                Double x = Math.sqrt(Math.pow(latlng.latitude - a.location.latitude, 2)
+                        + Math.pow(latlng.longitude - a.location.longitude, 2));
+                if (x * 30.82 * 3600 <= a.level * 15) {
+                    return true;
+                }
             }
-        }
         return false;
     }
 
     @Override
     public void onDataChanged(Object data) {
-
+        try {
+            myLocation = (Location) data;
+        } catch (Exception e) {
+        }
     }
 }
