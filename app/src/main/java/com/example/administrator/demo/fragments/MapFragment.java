@@ -639,6 +639,8 @@ public class MapFragment extends Fragment implements
                 if (cdt != null)
                     cdt.cancel();
                 layoutCamera.setVisibility(View.VISIBLE);
+                imgvCamera.setImageBitmap(null);
+                imgvCamera.setBackground(getResources().getDrawable(R.drawable.loading));
                 cdt = new CountDownTimer(900000000, 15000) {
                     public void onTick(long millisUntilFinished) {
                         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
@@ -651,6 +653,7 @@ public class MapFragment extends Fragment implements
                     public void onFinish() {
                         cdt.start();
                     }
+
                 };
 
                 cdt.start();
