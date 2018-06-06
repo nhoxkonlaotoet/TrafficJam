@@ -28,6 +28,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.example.administrator.demo.IFragmentManager;
@@ -90,9 +91,10 @@ public class MapFragment extends Fragment implements
     String latlngOrigin, latlngDestination;
     private GoogleMap mMap;
     ImageButton imgbtnDirection, imgbtnSearch;
-    Button btnHideDirection, btnStart;
+    Button btnHideDirection, btnStart,btnCloseCamera;
     EditText txtSearch, txtOrigin, txtDestination;
-    ImageView imgv;
+    ImageView imgvCamera;
+    RelativeLayout layoutCamera;
     Location myLocation;
 
     public MapFragment() {
@@ -111,7 +113,7 @@ public class MapFragment extends Fragment implements
     }
 
     void mapping() {
-        imgv = getActivity().findViewById(R.id.imageView);
+        imgvCamera = getActivity().findViewById(R.id.imgvCamera);
         imgbtnDirection = getActivity().findViewById(R.id.imgbtnDirect);
         btnStart = getActivity().findViewById(R.id.btnStart);
         btnHideDirection = getActivity().findViewById(R.id.btnHideDirection);
@@ -119,6 +121,8 @@ public class MapFragment extends Fragment implements
         txtOrigin = getActivity().findViewById(R.id.txtorigin);
         txtDestination = getActivity().findViewById(R.id.txtdestination);
         imgbtnSearch = getActivity().findViewById(R.id.imgbtnSearch);
+        layoutCamera = getActivity().findViewById(R.id.layoutCamera);
+        btnCloseCamera = getActivity().findViewById(R.id.btnCloseCamera);
     }
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -126,7 +130,7 @@ public class MapFragment extends Fragment implements
 
 
         mapping();
-
+        layoutCamera.setVisibility(View.INVISIBLE);
 
         PlaceAutocompleteFragment autocompleteFragment =
                 (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
@@ -178,6 +182,7 @@ public class MapFragment extends Fragment implements
         setButtonStartClick();
         setButtonDirectionClick();
         setButtonHideDirectionClick();
+        setButtonCloseCameraClick();
 
     }//end onViewCreated
 
@@ -248,7 +253,7 @@ public class MapFragment extends Fragment implements
         setPolylineClick();
         setMapClick();
         setMarkerClick();
-        if (getActivity().getIntent().getExtras().getString("action").equals(R.string.VIEWCAMERA))
+        if (getActivity().getIntent().getExtras().getString("action").equals("viewcamera"))
             showAllCameras();
 
 
@@ -258,17 +263,44 @@ public class MapFragment extends Fragment implements
         mMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
             @Override
             public void onPolylineClick(Polyline polyline) {
-                int normal = getResources().getColor(R.color.normal_way);
-                for (PolylineOptions polylineOptions : polylinePaths) {
-                    polylineOptions.color(normal);
-                    Log.e("path", polylineOptions+"" );
+                if(polyline.getColor()== getResources().getColor(R.color.selected_way))
+                    return;
+
+                boolean ignore;
+                PolylineOptions moveToLast = new PolylineOptions();
+                int index=-1;
+                for(PolylineOptions polylineOptions: polylinePaths)
+                {
+                    if(polylineOptions.getColor()!= getResources().getColor(R.color.red_way))
+                            polylineOptions.color(getResources().getColor(R.color.normal_way));
+
+                    if(polylineOptions.getPoints().size() == polyline.getPoints().size())
+                    {
+                        ignore=false;
+                        int n=polyline.getPoints().size();
+
+                        for(int i=1;i<n-1;i++) {
+                            if (!polyline.getPoints().get(i).equals(polylineOptions.getPoints().get(i)))
+                            {
+                                ignore=true;
+                                break;
+                            }
+                        }
+                        if(!ignore) {
+                            Log.e("selected ", "true");
+                            if(polylineOptions.getColor()!= getResources().getColor(R.color.red_way))
+                                polylineOptions.color(getResources().getColor(R.color.selected_way));
+                            moveToLast= polylineOptions;
+                            index = polylinePaths.indexOf(polylineOptions);
+                        }
+                    }
                 }
-                Log.e("onPolylineClick: ", polyline.toString());
+                if(moveToLast.getPoints().size()!=0 && index!=-1)
+                {
+                    polylinePaths.remove(index);
+                    polylinePaths.add(moveToLast);
+                }
                 mapRefresh();
-                polyline.setColor(getResources().getColor(R.color.selected_way));
-
-                Log.e( "click:",polyline.getId());
-
             }
         });
     }
@@ -413,7 +445,7 @@ public class MapFragment extends Fragment implements
                     width(10);
 
             for (int i = 0; i < route.points.size(); i++) {
-                if (!ignore)
+                if (!ignore) {
                     if (isInTrafficJam(route.points.get(i)) ||
                             (i > 0 && isInTrafficJam(new LatLng((route.points.get(i - 1).latitude + route.points.get(i).latitude) / 2,
                                     (route.points.get(i - 1).longitude + route.points.get(i).longitude) / 2)))) {
@@ -421,6 +453,7 @@ public class MapFragment extends Fragment implements
                         Log.e("Direction ", route + "");
                         ignore = true;
                     }
+                }
                 polylineOptions.add(route.points.get(i));
             }
 
@@ -477,6 +510,7 @@ public class MapFragment extends Fragment implements
 
 
         });
+
     }
 
     void mapRefresh() {
@@ -499,6 +533,7 @@ public class MapFragment extends Fragment implements
         }
 
         for (PolylineOptions polylineOptions : polylinePaths) {
+
             Polyline line = mMap.addPolyline(polylineOptions);
             line.setClickable(true);
         }
@@ -517,6 +552,7 @@ public class MapFragment extends Fragment implements
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 cameras.clear();
+                Log.e("camera count", dataSnapshot.getChildrenCount()+"" );
                 for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
                     Camera c = Snapshot1.getValue(Camera.class);
                     cameras.add(c);
@@ -584,7 +620,17 @@ public class MapFragment extends Fragment implements
         }
         return false;
     }
-
+    void setButtonCloseCameraClick()
+    {
+        btnCloseCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                layoutCamera.setVisibility(View.INVISIBLE);
+                if(cdt !=null)
+                    cdt.cancel();
+            }
+        });
+    }
     void setMarkerClick() {
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
@@ -592,11 +638,12 @@ public class MapFragment extends Fragment implements
                 final Marker m = marker;
                 if (cdt != null)
                     cdt.cancel();
+                layoutCamera.setVisibility(View.VISIBLE);
                 cdt = new CountDownTimer(900000000, 15000) {
                     public void onTick(long millisUntilFinished) {
                         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
                         final String imgURL = "http://giaothong.hochiminhcity.gov.vn/render/ImageHandler.ashx?id=" + m.getTag() + "&t=" + timestamp.getTime() + ".png";
-                        new DownLoadImageTask(imgv).execute(imgURL);
+                        new DownLoadImageTask(imgvCamera).execute(imgURL);
 
                         Toast.makeText(getContext(), timestamp.getTime() + "", Toast.LENGTH_SHORT).show();
                     }
