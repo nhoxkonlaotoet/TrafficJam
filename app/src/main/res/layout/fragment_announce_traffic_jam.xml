@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/background"
-    tools:context="com.example.administrator.demo.activities.ReportTrafficJamActivity">
+    tools:context="com.example.administrator.demo.activities.MapsActivity">
     <android.support.v4.view.ViewPager
         android:id="@+id/vpSlide"
         android:layout_width="match_parent"
@@ -25,7 +24,7 @@
         android:text="Xác nhận"
         android:textSize="18sp"
         android:padding="15dp"
-        android:textColor="@color/backgroundcolor" />
+     />
     <Button
         android:id="@+id/btnBack"
         android:layout_width="wrap_content"
@@ -36,7 +35,7 @@
         android:text="Trở về"
         android:textSize="18sp"
         android:padding="15dp"
-        android:textColor="@color/backgroundcolor" />
+       />
     <Button
         android:id="@+id/btnNext"
         android:layout_width="wrap_content"
@@ -47,7 +46,7 @@
         android:text="Tiếp tục"
         android:textSize="18sp"
         android:padding="15dp"
-        android:textColor="@color/backgroundcolor" />
+         />
 
 
 </RelativeLayout>

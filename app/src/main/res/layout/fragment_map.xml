@@ -36,7 +36,7 @@
                 android:layout_weight="1" />
 
             <LinearLayout
-             android:id="@+id/layoutDirection"
+                android:id="@+id/layoutDirection"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
 
@@ -61,11 +61,33 @@
         </LinearLayout>
     </android.support.v7.widget.CardView>
     `
+    <ImageButton
+        android:id="@+id/imgbtnWarning"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_above="@id/imgbtnCamera"
+        android:layout_margin="10dp"
+        android:layout_weight="80"
+        android:background="@android:color/transparent"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_exclamation_mark" />
+    <ImageButton
+        android:id="@+id/imgbtnCamera"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_above="@id/imgbtnDirect"
+        android:layout_margin="10dp"
+        android:layout_weight="80"
+        android:background="@android:color/transparent"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_camera" />
 
     <ImageButton
         android:id="@+id/imgbtnDirect"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_alignParentBottom="true"
         android:layout_margin="10dp"
         android:layout_weight="80"
@@ -73,152 +95,6 @@
         android:padding="4dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_direction" />
-
-    <!--<android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"-->
-        <!--android:id="@+id/myCardView"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginLeft="10dp"-->
-        <!--android:layout_marginRight="50dp"-->
-        <!--android:layout_marginTop="10dp"-->
-        <!--android:visibility="invisible"-->
-        <!--card_view:cardBackgroundColor="@android:color/transparent"-->
-        <!--card_view:cardElevation="0dp">-->
-
-        <!--<RelativeLayout-->
-
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:background="@android:color/transparent"-->
-            <!--android:orientation="horizontal">-->
-
-            <!--<LinearLayout-->
-                <!--android:id="@+id/layoutSearchBar"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="55dp"-->
-                <!--android:background="@drawable/border"-->
-                <!--android:orientation="horizontal">-->
-
-
-                <!--<EditText-->
-                    <!--android:id="@+id/txtSearch"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--android:layout_marginLeft="15dp"-->
-                    <!--android:layout_weight="20"-->
-                    <!--android:background="@android:color/transparent"-->
-                    <!--android:ems="10"-->
-                    <!--android:hint="Vui lòng nhập tìm kiếm..."-->
-                    <!--android:inputType="textPersonName"-->
-                    <!--android:text=""-->
-                    <!--android:textSize="20sp" />-->
-
-                <!--<ImageButton-->
-                    <!--android:id="@+id/imgbtnSearch"-->
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--android:layout_weight="80"-->
-                    <!--android:background="@android:color/transparent"-->
-                    <!--android:padding="5dp"-->
-                    <!--android:scaleType="fitCenter"-->
-
-
-                    <!--android:src="@drawable/ic_search_black_24dp" />-->
-                <!--&lt;!&ndash;<ImageButton&ndash;&gt;-->
-                <!--&lt;!&ndash;android:id="@+id/imgbtnDirect"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_height="match_parent"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_weight="80"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:background="@android:color/transparent"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:scaleType="fitCenter"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:padding="4dp"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_marginTop="3dp"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_marginBottom="3dp"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:layout_marginRight="3dp"&ndash;&gt;-->
-                <!--&lt;!&ndash;android:src="@drawable/ic_direction" />&ndash;&gt;-->
-
-
-            <!--</LinearLayout>-->
-
-            <!--<LinearLayout-->
-                <!--android:id="@+id/layoutDirection"-->
-                <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="110dp"-->
-                <!--android:layout_below="@id/layoutSearchBar"-->
-                <!--android:background="@drawable/border"-->
-                <!--android:orientation="horizontal"-->
-                <!--android:visibility="gone">-->
-
-                <!--<LinearLayout-->
-
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-
-                    <!--android:layout_weight="3"-->
-                    <!--android:background="@android:color/transparent"-->
-                    <!--android:orientation="vertical">-->
-
-
-                    <!--<EditText-->
-                        <!--android:id="@+id/txtorigin"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--android:layout_marginLeft="15dp"-->
-                        <!--android:layout_weight="20"-->
-                        <!--android:background="@android:color/transparent"-->
-                        <!--android:ems="10"-->
-                        <!--android:hint="Chọn điểm xuất phát"-->
-                        <!--android:inputType="textPersonName"-->
-                        <!--android:text=""-->
-                        <!--android:textSize="20sp" />-->
-
-                    <!--<EditText-->
-                        <!--android:id="@+id/txtdestination"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--android:layout_marginLeft="15dp"-->
-                        <!--android:layout_weight="20"-->
-                        <!--android:background="@android:color/transparent"-->
-                        <!--android:ems="10"-->
-                        <!--android:hint="Chọn điểm đến"-->
-                        <!--android:inputType="textPersonName"-->
-                        <!--android:text=""-->
-                        <!--android:textSize="20sp" />-->
-                <!--</LinearLayout>-->
-
-                <!--<LinearLayout-->
-
-                    <!--android:layout_width="match_parent"-->
-                    <!--android:layout_height="match_parent"-->
-                    <!--android:layout_weight="7"-->
-                    <!--android:background="@android:color/transparent"-->
-
-                    <!--android:orientation="horizontal">-->
-
-
-                    <!--<Button-->
-                        <!--android:id="@+id/btnStart"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--android:layout_weight="4"-->
-                        <!--android:background="@android:color/transparent"-->
-                        <!--android:text="Tìm đường">-->
-
-                    <!--</Button>-->
-
-                    <!--<Button-->
-                        <!--android:id="@+id/btnHideDirection"-->
-                        <!--android:layout_width="match_parent"-->
-                        <!--android:layout_height="match_parent"-->
-                        <!--android:layout_weight="6"-->
-                        <!--android:background="@android:color/transparent"-->
-                        <!--android:gravity="top|center"-->
-                        <!--android:padding="10dp"-->
-                        <!--android:text="X" />-->
-                <!--</LinearLayout>-->
-            <!--</LinearLayout>-->
-        <!--</RelativeLayout>-->
-    <!--</android.support.v7.widget.CardView>-->
 
     <RelativeLayout
         android:id="@+id/layoutCamera"

@@ -65,6 +65,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -88,12 +90,12 @@ public class MapFragment extends Fragment implements
     List<Announce> trafficjams = new ArrayList<>();
 
     ProgressDialog progressDialog;
-    boolean origin = false, destination = false;
-    String latlngOrigin, latlngDestination, ignoreTFid;
+    boolean origin = false, destination = false, isDialogShown = false, isCameraShown = false;
+    String latlngOrigin, latlngDestination, currentTFid;
     private GoogleMap mMap;
-    ImageButton imgbtnDirection, imgbtnSearch;
-    Button btnCloseCamera,btnCancelDirection; // ,btnHideDirection, btnStart;
-  //  EditText txtSearch, txtOrigin, txtDestination;
+    ImageButton imgbtnDirection, imgbtnCamera, imgbtnWarning;
+    Button btnCloseCamera, btnCancelDirection; // ,btnHideDirection, btnStart;
+    //  EditText txtSearch, txtOrigin, txtDestination;
     ImageView imgvCamera;
     RelativeLayout layoutCamera;
     Location myLocation;
@@ -119,13 +121,15 @@ public class MapFragment extends Fragment implements
     void mapping() {
         imgvCamera = getActivity().findViewById(R.id.imgvCamera);
         imgbtnDirection = getActivity().findViewById(R.id.imgbtnDirect);
-      //  btnStart = getActivity().findViewById(R.id.btnStart);
-      //  btnHideDirection = getActivity().findViewById(R.id.btnHideDirection);
-      //  txtSearch = getActivity().findViewById(R.id.txtSearch);
-    //    txtOrigin = getActivity().findViewById(R.id.txtorigin);
-     //   txtDestination = getActivity().findViewById(R.id.txtdestination);
-    //    imgbtnSearch = getActivity().findViewById(R.id.imgbtnSearch);
-        btnCancelDirection=getActivity().findViewById(R.id.btnCancleDirection);
+        imgbtnCamera = getActivity().findViewById(R.id.imgbtnCamera);
+        //  btnStart = getActivity().findViewById(R.id.btnStart);
+        //  btnHideDirection = getActivity().findViewById(R.id.btnHideDirection);
+        //  txtSearch = getActivity().findViewById(R.id.txtSearch);
+        //    txtOrigin = getActivity().findViewById(R.id.txtorigin);
+        //   txtDestination = getActivity().findViewById(R.id.txtdestination);
+        //    imgbtnSearch = getActivity().findViewById(R.id.imgbtnSearch);
+        imgbtnWarning = getActivity().findViewById(R.id.imgbtnWarning);
+        btnCancelDirection = getActivity().findViewById(R.id.btnCancleDirection);
         layoutDirection = getActivity().findViewById(R.id.layoutDirection);
         layoutCamera = getActivity().findViewById(R.id.layoutCamera);
         btnCloseCamera = getActivity().findViewById(R.id.btnCloseCamera);
@@ -143,6 +147,7 @@ public class MapFragment extends Fragment implements
         mapping();
         layoutCamera.setVisibility(View.GONE);
         layoutDirection.setVisibility(View.GONE);
+        imgbtnWarning.setVisibility(View.INVISIBLE);
         autocompleteOriginFragment.setHint("Tìm kiếm");
         setPlaceSelectedOrigin();
         autocompleteDestinationFragment.setHint("Chọn điểm đến");
@@ -179,27 +184,62 @@ public class MapFragment extends Fragment implements
 //        });
 
 
-     //   setButtonStartClick();
+        //   setButtonStartClick();
         setButtonDirectionClick();
         //setButtonHideDirectionClick();
-        setButtonCancelDirection();
+        setButtonCancelDirectionClick();
         setButtonCloseCameraClick();
-
+        setButtonCameraClick();
+        setButtonWarningClick();
     }//end onViewCreated
-    void setButtonCancelDirection()
-    {
+
+    void setButtonWarningClick() {
+        imgbtnWarning.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (!isDialogShown)
+                    showDialog(currentTFid);
+            }
+        });
+
+    }
+
+    void setButtonCameraClick() {
+        imgbtnCamera.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isCameraShown) {
+                    imgbtnCamera.setImageBitmap(null);
+                    imgbtnCamera.setBackgroundResource(R.drawable.ic_inactive_camera);
+                    imgbtnCamera.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                    isCameraShown = false;
+                    mapRefresh();
+                } else {
+                    imgbtnCamera.setBackgroundResource(R.drawable.ic_camera);
+                    isCameraShown = true;
+                    if (cameras.size() == 0)
+                        showAllCameras();
+                    else mapRefresh();
+                }
+
+            }
+        });
+    }
+
+    void setButtonCancelDirectionClick() {
         btnCancelDirection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                origin=false;
-                destination=false;
-                originMarker=null;
-                destinationMarker=null;
+                origin = false;
+                destination = false;
+                originMarker = null;
+                destinationMarker = null;
                 layoutDirection.setVisibility(View.GONE);
                 autocompleteOriginFragment.setHint("Tìm kiếm");
             }
         });
     }
+
     void setPlaceSelectedOrigin() {
         autocompleteOriginFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
@@ -214,7 +254,7 @@ public class MapFragment extends Fragment implements
                     origin = false;
                     Log.e("origin_: ", "origin: " + origin + " destination: " + destination);
                 } else {
-                    if(searchMarker!=null)
+                    if (searchMarker != null)
                         searchMarker.remove();
                     searchMarker = mMap.addMarker(new MarkerOptions().position(place.getLatLng()));
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 18));
@@ -290,8 +330,8 @@ public class MapFragment extends Fragment implements
 //                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
 //                layoutDirection.setVisibility(View.VISIBLE);
 //                layoutSearchBar.setVisibility(View.GONE);
-                originMarker=null;
-                destinationMarker=null;
+                originMarker = null;
+                destinationMarker = null;
                 polylinePaths.clear();
                 autocompleteOriginFragment.setText("");
                 autocompleteOriginFragment.setHint("Chọn điểm xuất phát");
@@ -330,8 +370,8 @@ public class MapFragment extends Fragment implements
         setPolylineClick();
         setMapClick();
         setMarkerClick();
-        if (getActivity().getIntent().getExtras().getString("action").equals("viewcamera"))
-            showAllCameras();
+//        if (getActivity().getIntent().getExtras().getString("action").equals("viewcamera"))
+//            showAllCameras();
     }
 
     void setPolylineClick() {
@@ -444,13 +484,10 @@ public class MapFragment extends Fragment implements
                 ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.INTERNET}, 1);
             }
 
-            // Access to the location has been granted to the app.
-            Toast.makeText(getActivity(), "enable location", Toast.LENGTH_SHORT).show();
             mMap.setMyLocationEnabled(true);
 
         } else {
             // Access to the location has been granted to the app.
-            Toast.makeText(getActivity(), "enable location", Toast.LENGTH_SHORT).show();
             mMap.setMyLocationEnabled(true);
         }
 
@@ -546,9 +583,18 @@ public class MapFragment extends Fragment implements
                     trafficjams.add(p);
                 }
                 if (myLocation != null)
-                    if (isInTrafficJam(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))) {
-                        Toast.makeText(getActivity(), "Bạn đang bị kẹt xe", Toast.LENGTH_SHORT).show();
+                    try {
 
+                        if (isInTrafficJam(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))) {
+                            //  Toast.makeText(getActivity(), "Bạn đang bị kẹt xe", Toast.LENGTH_SHORT).show();
+                            if (imgbtnWarning.getVisibility() == View.INVISIBLE)
+                                imgbtnWarning.setVisibility(View.VISIBLE);
+                        }
+                       else if (imgbtnWarning.getVisibility() == View.VISIBLE)
+                            imgbtnWarning.setVisibility(View.INVISIBLE);
+
+                    } catch (NullPointerException e) {
+                        Log.e("Null ", e.toString());
                     }
                 mapRefresh();
             }
@@ -559,22 +605,32 @@ public class MapFragment extends Fragment implements
             }
         });
     }
-    private void showDialog(String announceId)
-    {
-        Dialog dialog= new Dialog(getActivity());
+
+    private void showDialog(final String announceId) {
+        isDialogShown = true;
+        final Dialog dialog = new Dialog(getActivity());
+        dialog.setTitle("Thông báo");
         dialog.setContentView(R.layout.custom_dialog);
-        Button btnYes = dialog.findViewById(R.id.btnYes);
-        Button btnNo = dialog.findViewById(R.id.btnNo);
-        btnYes.setOnClickListener(new View.OnClickListener() {
+        Button btnKeep = dialog.findViewById(R.id.btnYes);
+        Button btnDelete = dialog.findViewById(R.id.btnNo);
+        btnKeep.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                dialog.dismiss();
+                isDialogShown = false;
             }
         });
-        btnNo.setOnClickListener(new View.OnClickListener() {
+        btnDelete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                DatabaseReference databaseRef = database.getReference("announces");
+                databaseRef.child(announceId).removeValue();
+                FirebaseStorage storage = FirebaseStorage.getInstance();
+                StorageReference storageRef = storage.getReference(announceId + ".png");
+                storageRef.delete();
+                isDialogShown = false;
+                dialog.dismiss();
             }
         });
         dialog.show();
@@ -583,13 +639,14 @@ public class MapFragment extends Fragment implements
 
     void mapRefresh() {
         mMap.clear();
-        for (Camera c : cameras) {
-            mMap.addMarker(new MarkerOptions()
-                    .title(c.name)
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_camera))
-                    .position(c.location.getLatlng()))
-                    .setTag("CAMERA"+c.id);
-        }
+        if (isCameraShown)
+            for (Camera c : cameras) {
+                mMap.addMarker(new MarkerOptions()
+                        .title(c.name)
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_camera))
+                        .position(c.location.getLatlng()))
+                        .setTag("CAMERA" + c.id);
+            }
         for (Announce a : trafficjams) {
             CircleOptions circleOption = new CircleOptions()
                     .center(a.location.getLatlng())
@@ -600,7 +657,7 @@ public class MapFragment extends Fragment implements
             mMap.addMarker(new MarkerOptions()
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_red_dot))
                     .position(a.location.getLatlng()))
-                    .setTag("ANNOUNCE"+a.imageURL);
+                    .setTag("ANNOUNCE" + a.imageURL);
             mMap.addCircle(circleOption);
         }
 
@@ -609,10 +666,9 @@ public class MapFragment extends Fragment implements
             Polyline line = mMap.addPolyline(polylineOptions);
             line.setClickable(true);
         }
-        if (originMarker != null) {
+        if (originMarker != null && destinationMarker != null) {
             mMap.addMarker(originMarker);
-            if (destinationMarker != null)
-                mMap.addMarker(destinationMarker);
+            mMap.addMarker(destinationMarker);
         }
 
     }
@@ -651,7 +707,7 @@ public class MapFragment extends Fragment implements
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_dot_inside_a_circle))
                             .position(latLng);
                     mMap.addMarker(originMarker);
-                  //  txtOrigin.setText(getAddress(latLng));
+                    //  txtOrigin.setText(getAddress(latLng));
                     latlngOrigin = latLng.latitude + "," + latLng.longitude;
                     Toast.makeText(getActivity(), latlngOrigin, Toast.LENGTH_SHORT).show();
                     origin = false;
@@ -662,7 +718,7 @@ public class MapFragment extends Fragment implements
                             .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_dot))
                             .position(latLng);
                     mMap.addMarker(destinationMarker);
-                  //  txtDestination.setText(getAddress(latLng));
+                    //  txtDestination.setText(getAddress(latLng));
                     destination = false;
                     latlngDestination = latLng.latitude + "," + latLng.longitude;
                     Toast.makeText(getActivity(), latlngDestination, Toast.LENGTH_SHORT).show();
@@ -721,8 +777,8 @@ public class MapFragment extends Fragment implements
             @Override
             public boolean onMarkerClick(final Marker marker) {
                 final Marker m = marker;
-                final String markerTag=m.getTag().toString();
-                if(markerTag.contains("CAMERA")) {
+                final String markerTag = m.getTag().toString();
+                if (markerTag.contains("CAMERA")) {
                     if (cdt != null)
                         cdt.cancel();
                     layoutCamera.setVisibility(View.VISIBLE);
@@ -747,10 +803,8 @@ public class MapFragment extends Fragment implements
                     };
 
                     cdt.start();
-                }
-                else if(markerTag.contains("ANNOUNCE"))
-                {
-                    new DownLoadImageTask(imgvCamera).execute(markerTag.replace("ANNOUNCE",""));
+                } else if (markerTag.contains("ANNOUNCE")) {
+                    new DownLoadImageTask(imgvCamera).execute(markerTag.replace("ANNOUNCE", ""));
                     layoutCamera.setVisibility(View.VISIBLE);
                     imgvCamera.setScaleType(ImageView.ScaleType.FIT_CENTER);
                 }
@@ -774,6 +828,7 @@ public class MapFragment extends Fragment implements
                 Double x = Math.sqrt(Math.pow(latlng.latitude - a.location.latitude, 2)
                         + Math.pow(latlng.longitude - a.location.longitude, 2));
                 if (x * 30.82 * 3600 <= a.level * 15) {
+                    currentTFid = a.id;
                     return true;
                 }
             }
@@ -781,9 +836,17 @@ public class MapFragment extends Fragment implements
     }
 
     @Override
-    public void onDataChanged(Object data) {
+    public void onDataChanged(Location data) {
         try {
-            myLocation = (Location) data;
+            myLocation = data;
+            if (isInTrafficJam(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))) {
+                //  Toast.makeText(getActivity(), "Bạn đang bị kẹt xe", Toast.LENGTH_SHORT).show();
+                if (imgbtnWarning.getVisibility() == View.INVISIBLE)
+                    imgbtnWarning.setVisibility(View.VISIBLE);
+            }
+            else
+            if (imgbtnWarning.getVisibility() == View.VISIBLE)
+                imgbtnWarning.setVisibility(View.INVISIBLE);
         } catch (Exception e) {
         }
     }

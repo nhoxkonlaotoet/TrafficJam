@@ -23,8 +23,7 @@ import java.sql.Timestamp;
 import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity {
-    CardView cvMap, cvAnnounce, cvCamera;
-    int PLACE_AUTOCOMPLETE_REQUEST_CODE = 1;
+    CardView cvMap, cvAnnounce, cvExit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +31,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         cvMap = findViewById(R.id.cvMap);
         cvAnnounce = findViewById(R.id.cvAnnounce);
-        cvCamera=findViewById(R.id.cvCamera);
+        cvExit=findViewById(R.id.cvExit);
         setCvMapClick();
         setCvAnnouceClick();
-        setCvCameraClick();
+        setCvExitClick();
 
 
     }
@@ -61,14 +60,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
     }
-    public void setCvCameraClick()
+    public void setCvExitClick()
     {
-        cvCamera.setOnClickListener(new View.OnClickListener() {
+        cvExit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(getBaseContext(),MapsActivity.class);
-                intent.putExtra("action","viewcamera");
-                startActivity(intent);
+                finish();
+                System.exit(0);
             }
         });
     }

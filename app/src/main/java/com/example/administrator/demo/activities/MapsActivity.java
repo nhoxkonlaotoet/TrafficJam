@@ -9,6 +9,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 
@@ -30,7 +31,7 @@ public class MapsActivity extends AppCompatActivity
 
     GoogleApiClient googleApiClient;
    public Location myLocation;
-
+    FragmentManager manager = getSupportFragmentManager();
    //init Communicating
     @Override
     public void onAttachFragment(android.support.v4.app.Fragment fragment) {
@@ -55,21 +56,21 @@ public class MapsActivity extends AppCompatActivity
 
         if(action.equals("viewmap")) {
 
-            FragmentManager manager = getSupportFragmentManager();
+
             MapFragment fragment = new MapFragment();
             manager.beginTransaction().replace(R.id.container_main, fragment, fragment.getTag()).commit();
         }
         else
             if(action.equals("announce"))
         {
-            FragmentManager manager = getSupportFragmentManager();
+
             AnnounceTrafficJamFragment fragment = new AnnounceTrafficJamFragment();
             manager.beginTransaction().replace(R.id.container_main, fragment, fragment.getTag()).commit();
         }
         else
             if(action.equals("viewcamera"))
             {
-                FragmentManager manager = getSupportFragmentManager();
+
                 MapFragment fragment = new MapFragment();
                 manager.beginTransaction().replace(R.id.container_main, fragment, fragment.getTag()).commit();
             }
@@ -91,8 +92,14 @@ public class MapsActivity extends AppCompatActivity
     }
 
     @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        Log.e("onBackPressed: ", "true");
+        finish();
+    }
+
+    @Override
     public void onLocationChanged(Location location) {
-      //  Toast.makeText(this, "changed: " + location.toString(), Toast.LENGTH_SHORT).show();
         myLocation = location;
         interfaceTrans.onDataChanged(location);
     }
@@ -109,7 +116,7 @@ public class MapsActivity extends AppCompatActivity
     }
 
     public void startLocationServices() {
-        Toast.makeText(this, "start service", Toast.LENGTH_LONG).show();
+        Log.e( "startLocationServices: ", "true");
         LocationRequest request = LocationRequest.create().setPriority(LocationRequest.PRIORITY_LOW_POWER);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;

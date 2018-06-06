@@ -44,6 +44,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -59,6 +60,7 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
     Location myLocation;
     int level, slideIndex;
     ImageView imgvCapture;
+    boolean firstLoad = true;
 
     public AnnounceTrafficJamFragment() {
         // Required empty public constructor
@@ -93,7 +95,7 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
         setBtnConfirmClick();
         setBtnBackClick();
         setBtnNextClick();
-        getAllTrafficJams();
+
     }
 
     void setOnPageChangeListtener() {
@@ -166,7 +168,7 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
             @Override
             public void onClick(View view) {
                 if (myLocation != null) {
-                    if(imgvCapture.getTag()!=null && imgvCapture.getTag().toString().equals("added"))
+                    if (imgvCapture.getTag() != null && imgvCapture.getTag().toString().equals("added"))
                         sendAnnounce(imgvCapture);
                     else
                         sendAnnounce();
@@ -174,8 +176,8 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
             }
         });
     }
-    void sendAnnounce()
-    {
+
+    void sendAnnounce() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef = database.getReference("announces");
         String id = myRef.push().getKey();
@@ -183,13 +185,13 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
                 Settings.Secure.ANDROID_ID);
         myRef.child(id).setValue(new Announce(id, new MyLatlng(new LatLng(myLocation.getLatitude(), myLocation.getLongitude())),
                 level, deviceId, new Timestamp(System.currentTimeMillis()).getTime(), null))
-        .addOnCompleteListener(new OnCompleteListener<Void>() {
-            @Override
-            public void onComplete(@NonNull Task<Void> task) {
-                Toast.makeText(getActivity(), "Cám ơn bạn đã báo điểm kẹt xe", Toast.LENGTH_SHORT).show();
-                getActivity().onBackPressed();
-            }
-        });
+                .addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        Toast.makeText(getActivity(), "Cám ơn bạn đã báo điểm kẹt xe", Toast.LENGTH_SHORT).show();
+                        getActivity().onBackPressed();
+                    }
+                });
     }
 
     void sendAnnounce(ImageView imgv) {
@@ -218,29 +220,30 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
                 myRef.child(id).setValue(new Announce(id, new MyLatlng(new LatLng(myLocation.getLatitude(), myLocation.getLongitude())),
                         level, deviceId, new Timestamp(System.currentTimeMillis()).getTime(), taskSnapshot.getDownloadUrl().toString()))
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        Toast.makeText(getActivity(), "Cám ơn bạn đã báo điểm kẹt xe", Toast.LENGTH_SHORT).show();
-                        getActivity().onBackPressed();
-                    }
-                });
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                Toast.makeText(getActivity(), "Cám ơn bạn đã báo điểm kẹt xe", Toast.LENGTH_SHORT).show();
+                                getActivity().onBackPressed();
+                            }
+                        });
             }
         });
     }
+
     public void getAllTrafficJams() {
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         final DatabaseReference myRef = database.getReference("announces");
         myRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                if(myLocation==null)
+                if (myLocation == null)
                     return;
-                float[] result= new float[1];
+                float[] result = new float[1];
                 for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
                     Announce p = Snapshot1.getValue(Announce.class);
-                    Location.distanceBetween(p.location.latitude,p.location.longitude,myLocation.getLatitude(),myLocation.getLongitude(),result);
-                    if(result[0]<=p.level*15)
-                    {
+
+                    Location.distanceBetween(p.location.latitude, p.location.longitude, myLocation.getLatitude(), myLocation.getLongitude(), result);
+                    if (result[0] <= p.level * 15) {
                         Toast.makeText(getActivity(), "Bạn đã trong vùng kẹt xe", Toast.LENGTH_LONG).show();
                         getActivity().onBackPressed();
                         return;
@@ -257,6 +260,7 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
         });
 
     }
+
     void setBtnBackClick() {
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -278,17 +282,20 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
     }
 
     @Override
-    public void onDataChanged(Object data) {
-      try {
-          myLocation = (Location) data;
-
-      }
-      catch (Exception e){}
+    public void onDataChanged(Location data) {
+        try {
+            myLocation = data;
+            if (firstLoad) {
+                getAllTrafficJams();
+                firstLoad = false;
+            }
+        } catch (Exception e) {
+        }
         //Toast.makeText(getActivity(), "onDataChanged" + ((Location) data).getLatitude() + ", " + ((Location) data).getLongitude(), Toast.LENGTH_SHORT).show();
 
     }
-    public byte[] imgvToBytes(ImageView imgv)
-    {
+
+    public byte[] imgvToBytes(ImageView imgv) {
         imgv.setDrawingCacheEnabled(true);
         imgv.buildDrawingCache();
         Bitmap bitmap = ((BitmapDrawable) imgv.getDrawable()).getBitmap();
@@ -297,4 +304,5 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
         byte[] data = baos.toByteArray();
         return data;
     }
+
 }
