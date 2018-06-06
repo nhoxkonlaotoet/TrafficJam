@@ -183,7 +183,7 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 Toast.makeText(getActivity(), "Cám ơn bạn đã báo điểm kẹt xe", Toast.LENGTH_SHORT).show();
-                getActivity().finish();
+                getActivity().onBackPressed();
             }
         });
     }
@@ -217,7 +217,7 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
                         Toast.makeText(getActivity(), "Cám ơn bạn đã báo điểm kẹt xe", Toast.LENGTH_SHORT).show();
-                        getActivity().finish();
+                        getActivity().onBackPressed();
                     }
                 });
             }
