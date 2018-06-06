@@ -30,8 +30,11 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
@@ -90,6 +93,7 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
         setBtnConfirmClick();
         setBtnBackClick();
         setBtnNextClick();
+        getAllTrafficJams();
     }
 
     void setOnPageChangeListtener() {
@@ -223,7 +227,36 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
             }
         });
     }
+    public void getAllTrafficJams() {
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        final DatabaseReference myRef = database.getReference("announces");
+        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if(myLocation==null)
+                    return;
+                float[] result= new float[1];
+                for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
+                    Announce p = Snapshot1.getValue(Announce.class);
+                    Location.distanceBetween(p.location.latitude,p.location.longitude,myLocation.getLatitude(),myLocation.getLongitude(),result);
+                    if(result[0]<=p.level*15)
+                    {
+                        Toast.makeText(getActivity(), "Bạn đã trong vùng kẹt xe", Toast.LENGTH_LONG).show();
+                        getActivity().onBackPressed();
+                        return;
+                    }
+                }
+            }
 
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e("errrrorrrrrrrrrrrrrrr", databaseError.toString());
+            }
+
+
+        });
+
+    }
     void setBtnBackClick() {
         btnBack.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -248,6 +281,7 @@ public class AnnounceTrafficJamFragment extends Fragment implements IFragmentMan
     public void onDataChanged(Object data) {
       try {
           myLocation = (Location) data;
+
       }
       catch (Exception e){}
         //Toast.makeText(getActivity(), "onDataChanged" + ((Location) data).getLatitude() + ", " + ((Location) data).getLongitude(), Toast.LENGTH_SHORT).show();

@@ -2,6 +2,7 @@ package com.example.administrator.demo.fragments;
 
 
 import android.Manifest;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -88,7 +89,7 @@ public class MapFragment extends Fragment implements
 
     ProgressDialog progressDialog;
     boolean origin = false, destination = false;
-    String latlngOrigin, latlngDestination;
+    String latlngOrigin, latlngDestination, ignoreTFid;
     private GoogleMap mMap;
     ImageButton imgbtnDirection, imgbtnSearch;
     Button btnCloseCamera,btnCancelDirection; // ,btnHideDirection, btnStart;
@@ -298,7 +299,7 @@ public class MapFragment extends Fragment implements
                 origin = true;
                 destination = true;
                 layoutDirection.setVisibility(View.VISIBLE);
-
+                mapRefresh();
             }
         });
     }
@@ -539,16 +540,16 @@ public class MapFragment extends Fragment implements
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-//                if (trafficjams.size()==0)
-//                    return;
                 trafficjams.clear();
                 for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
                     Announce p = Snapshot1.getValue(Announce.class);
                     trafficjams.add(p);
                 }
                 if (myLocation != null)
-                    if (isInTrafficJam(new LatLng(myLocation.getLatitude(), myLocation.getLongitude())))
+                    if (isInTrafficJam(new LatLng(myLocation.getLatitude(), myLocation.getLongitude()))) {
                         Toast.makeText(getActivity(), "Bạn đang bị kẹt xe", Toast.LENGTH_SHORT).show();
+
+                    }
                 mapRefresh();
             }
 
@@ -558,30 +559,27 @@ public class MapFragment extends Fragment implements
             }
         });
     }
-
-    public void showAllTrafficJams() {
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        DatabaseReference myRef = database.getReference("announces");
-        myRef.addListenerForSingleValueEvent(new ValueEventListener() {
+    private void showDialog(String announceId)
+    {
+        Dialog dialog= new Dialog(getActivity());
+        dialog.setContentView(R.layout.custom_dialog);
+        Button btnYes = dialog.findViewById(R.id.btnYes);
+        Button btnNo = dialog.findViewById(R.id.btnNo);
+        btnYes.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                trafficjams.clear();
-                for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
-                    Announce p = Snapshot1.getValue(Announce.class);
-                    trafficjams.add(p);
-                }
-                mapRefresh();
+            public void onClick(View view) {
+
             }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.e("errrrorrrrrrrrrrrrrrr", databaseError.toString());
-            }
-
-
         });
+        btnNo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
 
+            }
+        });
+        dialog.show();
     }
+
 
     void mapRefresh() {
         mMap.clear();
@@ -590,7 +588,7 @@ public class MapFragment extends Fragment implements
                     .title(c.name)
                     .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_camera))
                     .position(c.location.getLatlng()))
-                    .setTag(c.id);
+                    .setTag("CAMERA"+c.id);
         }
         for (Announce a : trafficjams) {
             CircleOptions circleOption = new CircleOptions()
@@ -599,6 +597,10 @@ public class MapFragment extends Fragment implements
                     .strokeColor(Color.WHITE)
                     .strokeWidth(1)
                     .fillColor(Color.argb(60, 255, 0, 0));
+            mMap.addMarker(new MarkerOptions()
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_red_dot))
+                    .position(a.location.getLatlng()))
+                    .setTag("ANNOUNCE"+a.imageURL);
             mMap.addCircle(circleOption);
         }
 
@@ -719,28 +721,39 @@ public class MapFragment extends Fragment implements
             @Override
             public boolean onMarkerClick(final Marker marker) {
                 final Marker m = marker;
-                if (cdt != null)
-                    cdt.cancel();
-                layoutCamera.setVisibility(View.VISIBLE);
-                imgvCamera.setImageBitmap(null);
-                imgvCamera.setBackground(getResources().getDrawable(R.drawable.loading));
-                cdt = new CountDownTimer(900000000, 15000) {
-                    public void onTick(long millisUntilFinished) {
-                        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-                        final String imgURL = "http://giaothong.hochiminhcity.gov.vn/render/ImageHandler.ashx?id=" + m.getTag() + "&t=" + timestamp.getTime() + ".png";
-                        new DownLoadImageTask(imgvCamera).execute(imgURL);
+                final String markerTag=m.getTag().toString();
+                if(markerTag.contains("CAMERA")) {
+                    if (cdt != null)
+                        cdt.cancel();
+                    layoutCamera.setVisibility(View.VISIBLE);
+                    imgvCamera.setScaleType(ImageView.ScaleType.FIT_XY);
+                    imgvCamera.setImageBitmap(null);
+                    imgvCamera.setBackground(getResources().getDrawable(R.drawable.loading));
+                    cdt = new CountDownTimer(900000000, 15000) {
+                        public void onTick(long millisUntilFinished) {
+                            Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+                            final String imgURL = "http://giaothong.hochiminhcity.gov.vn/render/ImageHandler.ashx?id="
+                                    + markerTag.replace("CAMERA", "")
+                                    + "&t=" + timestamp.getTime() + ".png";
+                            new DownLoadImageTask(imgvCamera).execute(imgURL);
 
-                        Toast.makeText(getContext(), timestamp.getTime() + "", Toast.LENGTH_SHORT).show();
-                    }
+                            Toast.makeText(getContext(), timestamp.getTime() + "", Toast.LENGTH_SHORT).show();
+                        }
 
-                    public void onFinish() {
-                        cdt.start();
-                    }
+                        public void onFinish() {
+                            cdt.start();
+                        }
 
-                };
+                    };
 
-                cdt.start();
-
+                    cdt.start();
+                }
+                else if(markerTag.contains("ANNOUNCE"))
+                {
+                    new DownLoadImageTask(imgvCamera).execute(markerTag.replace("ANNOUNCE",""));
+                    layoutCamera.setVisibility(View.VISIBLE);
+                    imgvCamera.setScaleType(ImageView.ScaleType.FIT_CENTER);
+                }
                 return false;
             }
         });
@@ -753,12 +766,9 @@ public class MapFragment extends Fragment implements
             cdt.cancel();
         } catch (Exception e) {
         }
-
     }
 
     public boolean isInTrafficJam(LatLng latlng) {
-
-
         if (trafficjams.size() != 0)
             for (Announce a : trafficjams) {
                 Double x = Math.sqrt(Math.pow(latlng.latitude - a.location.latitude, 2)
