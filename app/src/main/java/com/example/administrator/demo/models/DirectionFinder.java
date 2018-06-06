@@ -42,7 +42,7 @@ public class DirectionFinder {
         String urlOrigin = URLEncoder.encode(origin, "utf-8");
         String urlDestination = URLEncoder.encode(destination, "utf-8");
 
-        return DIRECTION_URL_API + "origin=" + urlOrigin + "&destination=" + urlDestination + "&key=" + GOOGLE_API_KEY+"&alternatives=true&mode=walking";
+        return DIRECTION_URL_API + "origin=" + urlOrigin + "&destination=" + urlDestination + "&key=" + GOOGLE_API_KEY+"&alternatives=true";
        // return "https://maps.googleapis.com/maps/api/directions/json?origin=10.858888,106.767909&destination=10.854759,106.763957&ey=AIzaSyARnuF4jnZwapL6i54vXL8XpeBVYVTyg9Q";
     }
 

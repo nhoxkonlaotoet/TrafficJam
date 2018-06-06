@@ -79,23 +79,26 @@ public class MapFragment extends Fragment implements
 
 
     CountDownTimer cdt;
-    private MarkerOptions originMarker;
-    private MarkerOptions destinationMarker;
-    private List<PolylineOptions> polylinePaths = new ArrayList<>();
+    MarkerOptions originMarker;
+    MarkerOptions destinationMarker;
+    List<PolylineOptions> polylinePaths = new ArrayList<>();
 
     List<Camera> cameras = new ArrayList<>();
-    private List<Announce> trafficjams = new ArrayList<>();
+    List<Announce> trafficjams = new ArrayList<>();
 
-    private ProgressDialog progressDialog;
+    ProgressDialog progressDialog;
     boolean origin = false, destination = false;
     String latlngOrigin, latlngDestination;
     private GoogleMap mMap;
     ImageButton imgbtnDirection, imgbtnSearch;
-    Button btnHideDirection, btnStart,btnCloseCamera;
-    EditText txtSearch, txtOrigin, txtDestination;
+    Button btnCloseCamera,btnCancelDirection; // ,btnHideDirection, btnStart;
+  //  EditText txtSearch, txtOrigin, txtDestination;
     ImageView imgvCamera;
     RelativeLayout layoutCamera;
     Location myLocation;
+    PlaceAutocompleteFragment autocompleteOriginFragment, autocompleteDestinationFragment;
+    Marker searchMarker;
+    LinearLayout layoutDirection;
 
     public MapFragment() {
         // Required empty public constructor
@@ -115,14 +118,21 @@ public class MapFragment extends Fragment implements
     void mapping() {
         imgvCamera = getActivity().findViewById(R.id.imgvCamera);
         imgbtnDirection = getActivity().findViewById(R.id.imgbtnDirect);
-        btnStart = getActivity().findViewById(R.id.btnStart);
-        btnHideDirection = getActivity().findViewById(R.id.btnHideDirection);
-        txtSearch = getActivity().findViewById(R.id.txtSearch);
-        txtOrigin = getActivity().findViewById(R.id.txtorigin);
-        txtDestination = getActivity().findViewById(R.id.txtdestination);
-        imgbtnSearch = getActivity().findViewById(R.id.imgbtnSearch);
+      //  btnStart = getActivity().findViewById(R.id.btnStart);
+      //  btnHideDirection = getActivity().findViewById(R.id.btnHideDirection);
+      //  txtSearch = getActivity().findViewById(R.id.txtSearch);
+    //    txtOrigin = getActivity().findViewById(R.id.txtorigin);
+     //   txtDestination = getActivity().findViewById(R.id.txtdestination);
+    //    imgbtnSearch = getActivity().findViewById(R.id.imgbtnSearch);
+        btnCancelDirection=getActivity().findViewById(R.id.btnCancleDirection);
+        layoutDirection = getActivity().findViewById(R.id.layoutDirection);
         layoutCamera = getActivity().findViewById(R.id.layoutCamera);
         btnCloseCamera = getActivity().findViewById(R.id.btnCloseCamera);
+        autocompleteOriginFragment =
+                (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment_origin);
+
+        autocompleteDestinationFragment =
+                (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment_destination);
     }
 
     public void onViewCreated(View view, Bundle savedInstanceState) {
@@ -130,40 +140,29 @@ public class MapFragment extends Fragment implements
 
 
         mapping();
-        layoutCamera.setVisibility(View.INVISIBLE);
+        layoutCamera.setVisibility(View.GONE);
+        layoutDirection.setVisibility(View.GONE);
+        autocompleteOriginFragment.setHint("Tìm kiếm");
+        setPlaceSelectedOrigin();
+        autocompleteDestinationFragment.setHint("Chọn điểm đến");
+        setPlaceSelectedDestination();
 
-        PlaceAutocompleteFragment autocompleteFragment =
-                (PlaceAutocompleteFragment) getActivity().getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
-        autocompleteFragment.setHint("Điểm xuất phát");
-        getActivity().findViewById(R.id.place_autocomplete_search_button).setVisibility(View.INVISIBLE);
-        autocompleteFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
-            @Override
-            public void onPlaceSelected(Place place) {
-                // TODO: Get info about the selected place.
-                Log.i(TAG, "Place: " + place.getName());
-            }
+//        txtOrigin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//            @Override
+//            public void onFocusChange(View view, boolean b) {
+//
+//                origin = b;
+//            }
+//        });
+//        txtDestination.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+//            @Override
+//            public void onFocusChange(View view, boolean b) {
+//
+//                destination = b;
+//            }
+//        });
 
-            @Override
-            public void onError(Status status) {
-                // TODO: Handle the error.
-                Log.i(TAG, "An error occurred: " + status);
-            }
-        });
 
-        txtOrigin.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-
-                origin = b;
-            }
-        });
-        txtDestination.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View view, boolean b) {
-
-                destination = b;
-            }
-        });
 //        imgbtnSearch.setOnClickListener(new View.OnClickListener() {
 //            @Override
 //            public void onClick(View view) {
@@ -179,65 +178,142 @@ public class MapFragment extends Fragment implements
 //        });
 
 
-        setButtonStartClick();
+     //   setButtonStartClick();
         setButtonDirectionClick();
-        setButtonHideDirectionClick();
+        //setButtonHideDirectionClick();
+        setButtonCancelDirection();
         setButtonCloseCameraClick();
 
     }//end onViewCreated
-
-    void setButtonStartClick() {
-        // tìm đường
-        btnStart.setOnClickListener(new View.OnClickListener() {
+    void setButtonCancelDirection()
+    {
+        btnCancelDirection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
-                String origin, destination;
-                if (latlngOrigin == null)
-                    origin = txtOrigin.getText().toString();
-                else
-                    origin = latlngOrigin;
-                if (latlngDestination == null)
-                    destination = txtDestination.getText().toString();
-                else
-                    destination = latlngDestination;
-
-                sendDirectionRequest(origin, destination);
-                btnHideDirection.callOnClick();
-                txtOrigin.setText("");
-                txtDestination.setText("");
-                latlngOrigin = null;
-                latlngDestination = null;
+                origin=false;
+                destination=false;
+                originMarker=null;
+                destinationMarker=null;
+                layoutDirection.setVisibility(View.GONE);
+                autocompleteOriginFragment.setHint("Tìm kiếm");
             }
         });
     }
+    void setPlaceSelectedOrigin() {
+        autocompleteOriginFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                if (origin) {
+                    Log.i(TAG, "Place: " + place.getName());
+                    originMarker = new MarkerOptions()
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_dot_inside_a_circle))
+                            .position(place.getLatLng());
+                    mMap.addMarker(originMarker);
+                    origin = false;
+                    Log.e("origin_: ", "origin: " + origin + " destination: " + destination);
+                } else {
+                    if(searchMarker!=null)
+                        searchMarker.remove();
+                    searchMarker = mMap.addMarker(new MarkerOptions().position(place.getLatLng()));
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(place.getLatLng(), 18));
+                }
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
+    }
+
+    void setPlaceSelectedDestination() {
+        autocompleteDestinationFragment.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                Log.i(TAG, "Place: " + place.getName());
+                destinationMarker = new MarkerOptions()
+                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_dot))
+                        .position(place.getLatLng());
+                destination = false;
+                if (!origin) {
+
+                    sendDirectionRequest(originMarker.getPosition().latitude + "," + originMarker.getPosition().longitude,
+                            destinationMarker.getPosition().latitude + "," + destinationMarker.getPosition().longitude);
+                }
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i(TAG, "An error occurred: " + status);
+            }
+        });
+    }
+
+//    void setButtonStartClick() {
+//        // tìm đường
+//        btnStart.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//
+//                String origin, destination;
+//                if (latlngOrigin == null)
+//                    origin = txtOrigin.getText().toString();
+//                else
+//                    origin = latlngOrigin;
+//                if (latlngDestination == null)
+//                    destination = txtDestination.getText().toString();
+//                else
+//                    destination = latlngDestination;
+//
+//                sendDirectionRequest(origin, destination);
+//                btnHideDirection.callOnClick();
+//                txtOrigin.setText("");
+//                txtDestination.setText("");
+//                latlngOrigin = null;
+//                latlngDestination = null;
+//            }
+//        });
+//    }
 
     void setButtonDirectionClick() {
         imgbtnDirection.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                LinearLayout layoutDirection = getActivity().findViewById(R.id.layoutDirection);
-                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
-                layoutDirection.setVisibility(View.VISIBLE);
-                layoutSearchBar.setVisibility(View.GONE);
+
+                //  Log.e("start direction: ","true" );
+//                LinearLayout layoutDirection = getActivity().findViewById(R.id.layoutDirection);
+//                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
+//                layoutDirection.setVisibility(View.VISIBLE);
+//                layoutSearchBar.setVisibility(View.GONE);
+                originMarker=null;
+                destinationMarker=null;
+                polylinePaths.clear();
+                autocompleteOriginFragment.setText("");
+                autocompleteOriginFragment.setHint("Chọn điểm xuất phát");
+                autocompleteDestinationFragment.setText("");
                 origin = true;
                 destination = true;
+                layoutDirection.setVisibility(View.VISIBLE);
 
             }
         });
     }
 
-    void setButtonHideDirectionClick() {
-        btnHideDirection.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                LinearLayout layoutDirection = getActivity().findViewById(R.id.layoutDirection);
-                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
-                layoutDirection.setVisibility(View.GONE);
-                layoutSearchBar.setVisibility(View.VISIBLE);
-            }
-        });
-    }
+//    void setButtonHideDirectionClick() {
+//        btnHideDirection.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                LinearLayout layoutDirection = getActivity().findViewById(R.id.layoutDirection);
+//                LinearLayout layoutSearchBar = getActivity().findViewById(R.id.layoutSearchBar);
+//                layoutDirection.setVisibility(View.GONE);
+//                layoutSearchBar.setVisibility(View.VISIBLE);
+//            }
+//        });
+//    }
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -255,48 +331,42 @@ public class MapFragment extends Fragment implements
         setMarkerClick();
         if (getActivity().getIntent().getExtras().getString("action").equals("viewcamera"))
             showAllCameras();
-
-
     }
 
     void setPolylineClick() {
         mMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
             @Override
             public void onPolylineClick(Polyline polyline) {
-                if(polyline.getColor()== getResources().getColor(R.color.selected_way))
+                if (polyline.getColor() == getResources().getColor(R.color.selected_way))
                     return;
 
                 boolean ignore;
                 PolylineOptions moveToLast = new PolylineOptions();
-                int index=-1;
-                for(PolylineOptions polylineOptions: polylinePaths)
-                {
-                    if(polylineOptions.getColor()!= getResources().getColor(R.color.red_way))
-                            polylineOptions.color(getResources().getColor(R.color.normal_way));
+                int index = -1;
+                for (PolylineOptions polylineOptions : polylinePaths) {
+                    if (polylineOptions.getColor() != getResources().getColor(R.color.red_way))
+                        polylineOptions.color(getResources().getColor(R.color.normal_way));
 
-                    if(polylineOptions.getPoints().size() == polyline.getPoints().size())
-                    {
-                        ignore=false;
-                        int n=polyline.getPoints().size();
+                    if (polylineOptions.getPoints().size() == polyline.getPoints().size()) {
+                        ignore = false;
+                        int n = polyline.getPoints().size();
 
-                        for(int i=1;i<n-1;i++) {
-                            if (!polyline.getPoints().get(i).equals(polylineOptions.getPoints().get(i)))
-                            {
-                                ignore=true;
+                        for (int i = 1; i < n - 1; i++) {
+                            if (!polyline.getPoints().get(i).equals(polylineOptions.getPoints().get(i))) {
+                                ignore = true;
                                 break;
                             }
                         }
-                        if(!ignore) {
+                        if (!ignore) {
                             Log.e("selected ", "true");
-                            if(polylineOptions.getColor()!= getResources().getColor(R.color.red_way))
+                            if (polylineOptions.getColor() != getResources().getColor(R.color.red_way))
                                 polylineOptions.color(getResources().getColor(R.color.selected_way));
-                            moveToLast= polylineOptions;
+                            moveToLast = polylineOptions;
                             index = polylinePaths.indexOf(polylineOptions);
                         }
                     }
                 }
-                if(moveToLast.getPoints().size()!=0 && index!=-1)
-                {
+                if (moveToLast.getPoints().size() != 0 && index != -1) {
                     polylinePaths.remove(index);
                     polylinePaths.add(moveToLast);
                 }
@@ -406,12 +476,12 @@ public class MapFragment extends Fragment implements
         progressDialog = ProgressDialog.show(getActivity(), "",
                 "Chờ xíu", true);
 
-        if (originMarker != null) {
-            originMarker = null;
-        }
-        if (destinationMarker != null) {
-            destinationMarker = null;
-        }
+//        if (originMarker != null) {
+//            originMarker = null;
+//        }
+//        if (destinationMarker != null) {
+//            destinationMarker = null;
+//        }
         if (polylinePaths != null) {
             polylinePaths.clear();
         }
@@ -421,23 +491,23 @@ public class MapFragment extends Fragment implements
     @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
         progressDialog.dismiss();
-        polylinePaths.clear();
-        originMarker = null;
-        destinationMarker = null;
+//        polylinePaths.clear();
+//        originMarker = null;
+//        destinationMarker = null;
         boolean ignore;
-        mapRefresh();
+
         for (Route route : routes) {
             ignore = false;
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
 
-            originMarker = new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_origin))
-                    .title(route.startAddress)
-                    .position(route.startLocation);
-            destinationMarker = new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_destination))
-                    .title(route.endAddress)
-                    .position(route.endLocation);
+//            originMarker = new MarkerOptions()
+//                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_origin))
+//                    .title(route.startAddress)
+//                    .position(route.startLocation);
+//            destinationMarker = new MarkerOptions()
+//                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_destination))
+//                    .title(route.endAddress)
+//                    .position(route.endLocation);
 
             PolylineOptions polylineOptions = new PolylineOptions().
                     geodesic(true).
@@ -552,7 +622,7 @@ public class MapFragment extends Fragment implements
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 cameras.clear();
-                Log.e("camera count", dataSnapshot.getChildrenCount()+"" );
+                Log.e("camera count", dataSnapshot.getChildrenCount() + "");
                 for (DataSnapshot Snapshot1 : dataSnapshot.getChildren()) {
                     Camera c = Snapshot1.getValue(Camera.class);
                     cameras.add(c);
@@ -573,20 +643,32 @@ public class MapFragment extends Fragment implements
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                Log.e("onMapClick: ", "origin: " + origin + " destination: " + destination);
                 if (origin) {
-                    mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
-                    txtOrigin.setText(getAddress(latLng));
+                    originMarker = new MarkerOptions()
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_dot_inside_a_circle))
+                            .position(latLng);
+                    mMap.addMarker(originMarker);
+                  //  txtOrigin.setText(getAddress(latLng));
                     latlngOrigin = latLng.latitude + "," + latLng.longitude;
                     Toast.makeText(getActivity(), latlngOrigin, Toast.LENGTH_SHORT).show();
                     origin = false;
+                    autocompleteOriginFragment.setText(getAddress(latLng));
+
                 } else if (destination) {
-                    mMap.addMarker(new MarkerOptions().position(latLng).title(getAddress(latLng)));
-                    txtDestination.setText(getAddress(latLng));
+                    destinationMarker = new MarkerOptions()
+                            .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_dot))
+                            .position(latLng);
+                    mMap.addMarker(destinationMarker);
+                  //  txtDestination.setText(getAddress(latLng));
                     destination = false;
                     latlngDestination = latLng.latitude + "," + latLng.longitude;
                     Toast.makeText(getActivity(), latlngDestination, Toast.LENGTH_SHORT).show();
-
+                    autocompleteDestinationFragment.setText(getAddress(latLng));
+                    sendDirectionRequest(originMarker.getPosition().latitude + "," + originMarker.getPosition().longitude,
+                            destinationMarker.getPosition().latitude + "," + destinationMarker.getPosition().longitude);
                 }
+
 //                Log.e("so duong ", polylinePaths.size()+"");
 //                for(Polyline polyline : polylinePaths)
 //                {
@@ -620,17 +702,18 @@ public class MapFragment extends Fragment implements
         }
         return false;
     }
-    void setButtonCloseCameraClick()
-    {
+
+    void setButtonCloseCameraClick() {
         btnCloseCamera.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 layoutCamera.setVisibility(View.INVISIBLE);
-                if(cdt !=null)
+                if (cdt != null)
                     cdt.cancel();
             }
         });
     }
+
     void setMarkerClick() {
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
@@ -674,6 +757,8 @@ public class MapFragment extends Fragment implements
     }
 
     public boolean isInTrafficJam(LatLng latlng) {
+
+
         if (trafficjams.size() != 0)
             for (Announce a : trafficjams) {
                 Double x = Math.sqrt(Math.pow(latlng.latitude - a.location.latitude, 2)

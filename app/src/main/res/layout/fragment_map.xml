@@ -16,190 +16,233 @@
         android:layout_height="match_parent"
 
         />
-    <fragment
-        android:id="@+id/place_autocomplete_fragment"
+
+    <android.support.v7.widget.CardView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_margin="15dp"
+        android:foreground="?android:attr/selectableItemBackground">
 
-        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-        />
-    `<ImageButton
+            <fragment
+                android:id="@+id/place_autocomplete_fragment_origin"
+                android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1" />
+
+            <LinearLayout
+             android:id="@+id/layoutDirection"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+
+                android:orientation="vertical">
+
+                <fragment
+                    android:id="@+id/place_autocomplete_fragment_destination"
+                    android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1" />
+
+                <Button
+                    android:id="@+id/btnCancleDirection"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:text="Huỷ"
+                    android:textAllCaps="false" />
+            </LinearLayout>
+        </LinearLayout>
+    </android.support.v7.widget.CardView>
+    `
+
+    <ImageButton
         android:id="@+id/imgbtnDirect"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_weight="80"
-        android:background="@android:color/transparent"
-        android:scaleType="fitCenter"
-        android:padding="4dp"
         android:layout_alignParentBottom="true"
         android:layout_margin="10dp"
+        android:layout_weight="80"
+        android:background="@android:color/transparent"
+        android:padding="4dp"
+        android:scaleType="fitCenter"
         android:src="@drawable/ic_direction" />
-    <android.support.v7.widget.CardView
-        xmlns:card_view="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/myCardView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        card_view:cardBackgroundColor="@android:color/transparent"
-        android:layout_marginTop="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="50dp"
-        card_view:cardElevation="0dp">
-        <RelativeLayout
 
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:background="@android:color/transparent">
-        <LinearLayout
-            android:id="@+id/layoutSearchBar"
-            android:layout_width="match_parent"
-            android:layout_height="55dp"
-            android:orientation="horizontal"
+    <!--<android.support.v7.widget.CardView xmlns:card_view="http://schemas.android.com/apk/res-auto"-->
+        <!--android:id="@+id/myCardView"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_marginLeft="10dp"-->
+        <!--android:layout_marginRight="50dp"-->
+        <!--android:layout_marginTop="10dp"-->
+        <!--android:visibility="invisible"-->
+        <!--card_view:cardBackgroundColor="@android:color/transparent"-->
+        <!--card_view:cardElevation="0dp">-->
 
+        <!--<RelativeLayout-->
 
-            android:background="@drawable/border">
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:background="@android:color/transparent"-->
+            <!--android:orientation="horizontal">-->
 
-
-            <EditText
-                android:id="@+id/txtSearch"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="20"
-                android:ems="10"
-                android:inputType="textPersonName"
-                android:text=""
-                android:layout_marginLeft="15dp"
-                android:hint="Vui lòng nhập tìm kiếm..."
-                android:textSize="20sp"
-                android:background="@android:color/transparent"/>
-            <ImageButton
-                android:id="@+id/imgbtnSearch"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_weight="80"
-                android:background="@android:color/transparent"
-                android:scaleType="fitCenter"
-                android:padding="5dp"
-
-
-                android:src="@drawable/ic_search_black_24dp" />
-            <!--<ImageButton-->
-                <!--android:id="@+id/imgbtnDirect"-->
+            <!--<LinearLayout-->
+                <!--android:id="@+id/layoutSearchBar"-->
                 <!--android:layout_width="match_parent"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:layout_weight="80"-->
-                <!--android:background="@android:color/transparent"-->
-                <!--android:scaleType="fitCenter"-->
-                <!--android:padding="4dp"-->
-                <!--android:layout_marginTop="3dp"-->
-                <!--android:layout_marginBottom="3dp"-->
-                <!--android:layout_marginRight="3dp"-->
-                <!--android:src="@drawable/ic_direction" />-->
+                <!--android:layout_height="55dp"-->
+                <!--android:background="@drawable/border"-->
+                <!--android:orientation="horizontal">-->
 
 
-        </LinearLayout>
-            <LinearLayout
-                android:id="@+id/layoutDirection"
-                android:layout_width="match_parent"
-                android:layout_height="110dp"
-                android:orientation="horizontal"
-                android:background="@drawable/border"
-                android:visibility="gone"
-                android:layout_below="@id/layoutSearchBar">
-            <LinearLayout
+                <!--<EditText-->
+                    <!--android:id="@+id/txtSearch"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--android:layout_marginLeft="15dp"-->
+                    <!--android:layout_weight="20"-->
+                    <!--android:background="@android:color/transparent"-->
+                    <!--android:ems="10"-->
+                    <!--android:hint="Vui lòng nhập tìm kiếm..."-->
+                    <!--android:inputType="textPersonName"-->
+                    <!--android:text=""-->
+                    <!--android:textSize="20sp" />-->
 
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-
-                android:orientation="vertical"
-                android:layout_weight="3"
-                android:background="@android:color/transparent">
-
-
-                <EditText
-                    android:id="@+id/txtorigin"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="20"
-                    android:ems="10"
-                    android:inputType="textPersonName"
-                    android:text=""
-                    android:layout_marginLeft="15dp"
-                    android:hint="Chọn điểm xuất phát"
-                    android:textSize="20sp"
-                    android:background="@android:color/transparent"/>
-
-                <EditText
-                    android:id="@+id/txtdestination"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_weight="20"
-                    android:ems="10"
-                    android:inputType="textPersonName"
-                    android:text=""
-                    android:layout_marginLeft="15dp"
-                    android:hint="Chọn điểm đến"
-                    android:textSize="20sp"
-                    android:background="@android:color/transparent"/>
-            </LinearLayout>
-            <LinearLayout
-
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:layout_weight="7"
-
-                android:background="@android:color/transparent">
+                <!--<ImageButton-->
+                    <!--android:id="@+id/imgbtnSearch"-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--android:layout_weight="80"-->
+                    <!--android:background="@android:color/transparent"-->
+                    <!--android:padding="5dp"-->
+                    <!--android:scaleType="fitCenter"-->
 
 
-            <Button
-                android:id="@+id/btnStart"
-                android:layout_height="match_parent"
-                android:layout_width="match_parent"
-            android:layout_weight="4"
-                android:text="Tìm đường"
-                android:background="@android:color/transparent">
+                    <!--android:src="@drawable/ic_search_black_24dp" />-->
+                <!--&lt;!&ndash;<ImageButton&ndash;&gt;-->
+                <!--&lt;!&ndash;android:id="@+id/imgbtnDirect"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_height="match_parent"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_weight="80"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:background="@android:color/transparent"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:scaleType="fitCenter"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:padding="4dp"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_marginTop="3dp"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_marginBottom="3dp"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:layout_marginRight="3dp"&ndash;&gt;-->
+                <!--&lt;!&ndash;android:src="@drawable/ic_direction" />&ndash;&gt;-->
 
-            </Button>
 
-                <Button
-                    android:id="@+id/btnHideDirection"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="top|center"
-                    android:layout_weight="6"
-                    android:padding="10dp"
-                    android:background="@android:color/transparent"
-                    android:text="X" />
-            </LinearLayout>
-            </LinearLayout>
-        </RelativeLayout>
-    </android.support.v7.widget.CardView>
+            <!--</LinearLayout>-->
+
+            <!--<LinearLayout-->
+                <!--android:id="@+id/layoutDirection"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="110dp"-->
+                <!--android:layout_below="@id/layoutSearchBar"-->
+                <!--android:background="@drawable/border"-->
+                <!--android:orientation="horizontal"-->
+                <!--android:visibility="gone">-->
+
+                <!--<LinearLayout-->
+
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+
+                    <!--android:layout_weight="3"-->
+                    <!--android:background="@android:color/transparent"-->
+                    <!--android:orientation="vertical">-->
+
+
+                    <!--<EditText-->
+                        <!--android:id="@+id/txtorigin"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="match_parent"-->
+                        <!--android:layout_marginLeft="15dp"-->
+                        <!--android:layout_weight="20"-->
+                        <!--android:background="@android:color/transparent"-->
+                        <!--android:ems="10"-->
+                        <!--android:hint="Chọn điểm xuất phát"-->
+                        <!--android:inputType="textPersonName"-->
+                        <!--android:text=""-->
+                        <!--android:textSize="20sp" />-->
+
+                    <!--<EditText-->
+                        <!--android:id="@+id/txtdestination"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="match_parent"-->
+                        <!--android:layout_marginLeft="15dp"-->
+                        <!--android:layout_weight="20"-->
+                        <!--android:background="@android:color/transparent"-->
+                        <!--android:ems="10"-->
+                        <!--android:hint="Chọn điểm đến"-->
+                        <!--android:inputType="textPersonName"-->
+                        <!--android:text=""-->
+                        <!--android:textSize="20sp" />-->
+                <!--</LinearLayout>-->
+
+                <!--<LinearLayout-->
+
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="match_parent"-->
+                    <!--android:layout_weight="7"-->
+                    <!--android:background="@android:color/transparent"-->
+
+                    <!--android:orientation="horizontal">-->
+
+
+                    <!--<Button-->
+                        <!--android:id="@+id/btnStart"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="match_parent"-->
+                        <!--android:layout_weight="4"-->
+                        <!--android:background="@android:color/transparent"-->
+                        <!--android:text="Tìm đường">-->
+
+                    <!--</Button>-->
+
+                    <!--<Button-->
+                        <!--android:id="@+id/btnHideDirection"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="match_parent"-->
+                        <!--android:layout_weight="6"-->
+                        <!--android:background="@android:color/transparent"-->
+                        <!--android:gravity="top|center"-->
+                        <!--android:padding="10dp"-->
+                        <!--android:text="X" />-->
+                <!--</LinearLayout>-->
+            <!--</LinearLayout>-->
+        <!--</RelativeLayout>-->
+    <!--</android.support.v7.widget.CardView>-->
 
     <RelativeLayout
         android:id="@+id/layoutCamera"
         android:layout_width="match_parent"
         android:layout_height="250dp"
         android:layout_alignParentBottom="true"
-        android:background="#000">
+        android:background="#000"
+        android:visibility="invisible">     <!-- hideeeeeeeeeeeeeee -->
         <ImageView
             android:id="@+id/imgvCamera"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_alignParentBottom="true"
-            android:scaleType="fitXY"
             android:layout_marginTop="1dp"
-            />
+            android:scaleType="fitXY" />
+
         <Button
             android:id="@+id/btnCloseCamera"
             android:layout_width="30dp"
             android:layout_height="30dp"
             android:layout_alignParentRight="true"
-            android:background="#fff"
-            android:text="x"
             android:layout_marginTop="1dp"
-            />
+            android:background="#fff"
+            android:text="x" />
 
     </RelativeLayout>
 
